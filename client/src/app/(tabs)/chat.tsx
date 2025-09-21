@@ -33,7 +33,7 @@ export default function Chat() {
             timestamp: new Date()
         }
 
-        setMessages(prev => [...prev, userMessage])
+        setMessages(prev => [...prev, userMessage as Message])
         setInputText('')
         setIsTyping(true)
 
@@ -45,7 +45,7 @@ export default function Chat() {
                 isUser: false,
                 timestamp: new Date()
             }
-            setMessages(prev => [...prev, aiMessage])
+            setMessages(prev => [...prev, aiMessage as Message])
             setIsTyping(false)
         }, 2000)
     }
@@ -129,7 +129,7 @@ export default function Chat() {
                 <View style={{ flex: 1 }}>
                     {/* Header */}
                     <View style={{
-                        paddingTop: 60,
+                        paddingTop: 20,
                         paddingHorizontal: 24,
                         paddingBottom: 20,
                         borderBottomWidth: 1,
@@ -156,9 +156,9 @@ export default function Chat() {
                     <ScrollView
                         style={{ flex: 1, paddingHorizontal: 24 }}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingVertical: 20 }}
+                        contentContainerStyle={{ paddingVertical: 20, paddingBottom: 100 }}
                     >
-                        {messages.map((message) => (
+                        {messages.map((message: Message) => (
                             <MessageBubble key={message.id} message={message} />
                         ))}
 
@@ -211,6 +211,7 @@ export default function Chat() {
                     <View style={{
                         paddingHorizontal: 24,
                         paddingVertical: 16,
+                        marginBottom: 100,
                         borderTopWidth: 1,
                         borderTopColor: darkColors.border,
                         backgroundColor: darkColors.background

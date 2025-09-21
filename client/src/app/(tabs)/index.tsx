@@ -72,8 +72,8 @@ export default function Dashboard() {
     >
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <View style={{ paddingTop: 60, paddingHorizontal: 24, paddingBottom: 32 }}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
           {/* Header */}
           <View style={{ marginBottom: 32 }}>
             <Text style={{

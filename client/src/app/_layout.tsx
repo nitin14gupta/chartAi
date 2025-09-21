@@ -7,6 +7,7 @@ import { OnboardingProvider } from "../context/OnboardingContext";
 import { ToastProvider } from "../context/ToastContext";
 import { AuthProvider } from "../context/AuthContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -27,6 +28,7 @@ export default function RootLayout() {
       <OnboardingProvider>
         <ToastProvider>
           <SafeAreaProvider>
+            <StatusBar style="light-content" backgroundColor="#000000" translucent />
             <Stack>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
