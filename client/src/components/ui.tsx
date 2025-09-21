@@ -14,11 +14,13 @@ export const colors = {
 
 // Dark mode colors
 export const darkColors = {
-    background: "#0F0F0F",
-    surface: "#1A1A1A",
-    surfaceElevated: "#262626",
-    primary: "#6366F1", // Indigo
-    primaryLight: "#818CF8",
+    background: "#000000",
+    surface: "#111111",
+    surfaceElevated: "#1A1A1A",
+    surfaceSecondary: "#262626",
+    primary: "#8B5CF6", // Purple
+    primaryLight: "#A78BFA",
+    primaryDark: "#7C3AED",
     secondary: "#EC4899", // Pink
     accent: "#F59E0B", // Amber
     success: "#10B981", // Emerald
@@ -31,13 +33,15 @@ export const darkColors = {
     textTertiary: "#71717A", // Zinc 500
 
     // Border colors
-    border: "#27272A", // Zinc 800
-    borderLight: "#3F3F46", // Zinc 700
+    border: "#1F1F1F",
+    borderLight: "#2A2A2A",
+    borderAccent: "#8B5CF6",
 
     // Gradient colors
-    gradientStart: "#0F0F0F",
-    gradientEnd: "#1A1A1A",
-    gradientAccent: "#6366F1",
+    gradientStart: "#000000",
+    gradientEnd: "#111111",
+    gradientAccent: "#8B5CF6",
+    gradientSecondary: "#EC4899",
 };
 
 export const ScreenContainer: React.FC<PropsWithChildren<{ style?: ViewProps["style"]; dark?: boolean }>> = ({ children, style, dark = false }) => {
@@ -364,6 +368,281 @@ export const Input: React.FC<InputProps> = ({
                     {error}
                 </Text>
             )}
+        </View>
+    );
+};
+
+// Premium Card Component
+type PremiumCardProps = PropsWithChildren<{
+    style?: ViewProps["style"];
+    dark?: boolean;
+    variant?: "default" | "elevated" | "outlined";
+    onPress?: () => void;
+}>;
+
+export const PremiumCard: React.FC<PremiumCardProps> = ({
+    children,
+    style,
+    dark = false,
+    variant = "default",
+    onPress
+}) => {
+    const scale = useRef(new Animated.Value(1)).current;
+
+    const getCardStyle = () => {
+        const baseStyle = {
+            borderRadius: 16,
+            padding: 20,
+            shadowColor: dark ? darkColors.primary : "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: dark ? 0.15 : 0.1,
+            shadowRadius: 12,
+            elevation: 8,
+        };
+
+        switch (variant) {
+            case "elevated":
+                return {
+                    ...baseStyle,
+                    backgroundColor: dark ? darkColors.surfaceElevated : "#FFFFFF",
+                    borderWidth: 0,
+                };
+            case "outlined":
+                return {
+                    ...baseStyle,
+                    backgroundColor: dark ? darkColors.surface : "#FFFFFF",
+                    borderWidth: 1,
+                    borderColor: dark ? darkColors.border : "#E5E7EB",
+                    shadowOpacity: 0,
+                    elevation: 0,
+                };
+            default:
+                return {
+                    ...baseStyle,
+                    backgroundColor: dark ? darkColors.surface : "#FFFFFF",
+                    borderWidth: 1,
+                    borderColor: dark ? darkColors.border : "#F3F4F6",
+                };
+        }
+    };
+
+    const handlePressIn = () => {
+        if (onPress) {
+            Animated.spring(scale, { toValue: 0.98, useNativeDriver: true }).start();
+        }
+    };
+
+    const handlePressOut = () => {
+        if (onPress) {
+            Animated.spring(scale, { toValue: 1, friction: 3, useNativeDriver: true }).start();
+        }
+    };
+
+    const CardContent = () => (
+        <Animated.View style={[getCardStyle(), style, { transform: [{ scale }] }]}>
+            {children}
+        </Animated.View>
+    );
+
+    if (onPress) {
+        return (
+            <Pressable
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={onPress}
+            >
+                <CardContent />
+            </Pressable>
+        );
+    }
+
+    return <CardContent />;
+};
+
+// Premium Button with enhanced styling
+type PremiumButtonProps = PropsWithChildren<{
+    onPress?: () => void;
+    variant?: "primary" | "secondary" | "outline" | "ghost";
+    size?: "sm" | "md" | "lg";
+    disabled?: boolean;
+    dark?: boolean;
+    loading?: boolean;
+    icon?: React.ReactNode;
+}>;
+
+export const PremiumButton: React.FC<PremiumButtonProps> = ({
+    children,
+    onPress,
+    variant = "primary",
+    size = "md",
+    disabled = false,
+    dark = false,
+    loading = false,
+    icon
+}) => {
+    const scale = useRef(new Animated.Value(1)).current;
+    const opacity = useRef(new Animated.Value(1)).current;
+
+    const getSizeStyle = () => {
+        switch (size) {
+            case "sm":
+                return { paddingVertical: 8, paddingHorizontal: 16, fontSize: 14 };
+            case "lg":
+                return { paddingVertical: 16, paddingHorizontal: 32, fontSize: 18 };
+            default:
+                return { paddingVertical: 12, paddingHorizontal: 24, fontSize: 16 };
+        }
+    };
+
+    const getVariantStyle = () => {
+        const sizeStyle = getSizeStyle();
+
+        switch (variant) {
+            case "primary":
+                return {
+                    backgroundColor: dark ? darkColors.primary : colors.purple,
+                    borderWidth: 0,
+                    shadowColor: dark ? darkColors.primary : colors.purple,
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 4,
+                };
+            case "secondary":
+                return {
+                    backgroundColor: dark ? darkColors.surfaceElevated : colors.blue,
+                    borderWidth: 0,
+                    shadowColor: dark ? darkColors.primary : colors.blue,
+                    shadowOpacity: 0.2,
+                    shadowRadius: 6,
+                    elevation: 2,
+                };
+            case "outline":
+                return {
+                    backgroundColor: "transparent",
+                    borderWidth: 2,
+                    borderColor: dark ? darkColors.primary : colors.purple,
+                };
+            case "ghost":
+                return {
+                    backgroundColor: "transparent",
+                    borderWidth: 0,
+                };
+            default:
+                return {};
+        }
+    };
+
+    const getTextColor = () => {
+        if (variant === "outline" || variant === "ghost") {
+            return dark ? darkColors.primary : colors.purple;
+        }
+        return dark ? darkColors.textPrimary : "#FFFFFF";
+    };
+
+    const handlePress = () => {
+        if (!disabled && !loading && onPress) {
+            Haptics.selectionAsync();
+            onPress();
+        }
+    };
+
+    const handlePressIn = () => {
+        if (!disabled && !loading) {
+            Animated.parallel([
+                Animated.spring(scale, { toValue: 0.95, useNativeDriver: true }),
+                Animated.timing(opacity, { toValue: 0.8, duration: 100, useNativeDriver: true })
+            ]).start();
+        }
+    };
+
+    const handlePressOut = () => {
+        if (!disabled && !loading) {
+            Animated.parallel([
+                Animated.spring(scale, { toValue: 1, friction: 3, useNativeDriver: true }),
+                Animated.timing(opacity, { toValue: 1, duration: 100, useNativeDriver: true })
+            ]).start();
+        }
+    };
+
+    return (
+        <Pressable
+            onPress={handlePress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            disabled={disabled || loading}
+        >
+            <Animated.View style={[
+                {
+                    transform: [{ scale }],
+                    opacity: disabled ? 0.5 : opacity,
+                    borderRadius: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                },
+                getVariantStyle(),
+                getSizeStyle()
+            ]}>
+                {loading ? (
+                    <Text style={{ color: getTextColor(), fontFamily: "Poppins_600SemiBold" }}>
+                        Loading...
+                    </Text>
+                ) : (
+                    <>
+                        {icon && <View style={{ marginRight: 8 }}>{icon}</View>}
+                        <Text style={{
+                            color: getTextColor(),
+                            fontFamily: "Poppins_600SemiBold",
+                            fontSize: getSizeStyle().fontSize,
+                            textAlign: "center"
+                        }}>
+                            {children}
+                        </Text>
+                    </>
+                )}
+            </Animated.View>
+        </Pressable>
+    );
+};
+
+// Glassmorphism effect component
+type GlassCardProps = PropsWithChildren<{
+    style?: ViewProps["style"];
+    intensity?: "light" | "medium" | "strong";
+}>;
+
+export const GlassCard: React.FC<GlassCardProps> = ({
+    children,
+    style,
+    intensity = "medium"
+}) => {
+    const getIntensity = () => {
+        switch (intensity) {
+            case "light":
+                return { backgroundColor: "rgba(255, 255, 255, 0.05)", borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.1)" };
+            case "strong":
+                return { backgroundColor: "rgba(255, 255, 255, 0.15)", borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.2)" };
+            default:
+                return { backgroundColor: "rgba(255, 255, 255, 0.1)", borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.15)" };
+        }
+    };
+
+    return (
+        <View style={[
+            {
+                borderRadius: 16,
+                padding: 20,
+                backdropFilter: "blur(10px)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 12,
+                elevation: 4,
+            },
+            getIntensity(),
+            style
+        ]}>
+            {children}
         </View>
     );
 };

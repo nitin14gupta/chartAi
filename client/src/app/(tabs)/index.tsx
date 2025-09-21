@@ -1,195 +1,295 @@
-import React from 'react'
-import { View, Text, ScrollView, Pressable, StatusBar } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, ScrollView, Pressable, StatusBar, Alert } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
 import { darkColors } from '../../components/ui'
+import * as ImagePicker from 'expo-image-picker'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-export default function Dashboard() {
-  const router = useRouter()
+export default function Index() {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
-  const QuickActionCard = ({ icon, title, subtitle, onPress, color }: {
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    })
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri)
+    }
+  }
+
+  const takePhoto = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    })
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri)
+    }
+  }
+
+  const analyzeChart = async () => {
+    if (!selectedImage) return
+
+    setIsAnalyzing(true)
+    // Simulate analysis
+    setTimeout(() => {
+      setIsAnalyzing(false)
+      Alert.alert(
+        'Analysis Complete!',
+        'Your chart has been analyzed. Check the results in your dashboard.',
+        [{ text: 'OK' }]
+      )
+    }, 3000)
+  }
+
+  const ActionButton = ({ icon, title, onPress, variant = 'primary' }: {
     icon: string
     title: string
-    subtitle: string
     onPress: () => void
-    color: string
+    variant?: 'primary' | 'secondary'
   }) => (
     <Pressable
       onPress={onPress}
       style={{
-        backgroundColor: darkColors.surface,
+        backgroundColor: variant === 'primary' ? darkColors.primary : darkColors.surface,
         borderRadius: 16,
         padding: 20,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: darkColors.border,
+        borderColor: variant === 'primary' ? darkColors.primary : darkColors.border,
         shadowColor: darkColors.primary,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
+        shadowOpacity: variant === 'primary' ? 0.3 : 0.1,
         shadowRadius: 8,
         elevation: 4,
+        flexDirection: 'row',
+        alignItems: 'center',
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-        <View style={{
-          width: 48,
-          height: 48,
-          borderRadius: 24,
-          backgroundColor: color + '20',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: 16
-        }}>
-          <Ionicons name={icon as any} size={24} color={color} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{
-            fontFamily: 'Poppins_600SemiBold',
-            fontSize: 18,
-            color: darkColors.textPrimary,
-            marginBottom: 4
-          }}>
-            {title}
-          </Text>
-          <Text style={{
-            fontFamily: 'Poppins_400Regular',
-            fontSize: 14,
-            color: darkColors.textSecondary
-          }}>
-            {subtitle}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward-outline" size={20} color={darkColors.textSecondary} />
+      <View style={{
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: variant === 'primary' ? darkColors.primary + '20' : darkColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 16
+      }}>
+        <Ionicons
+          name={icon as any}
+          size={24}
+          color={variant === 'primary' ? darkColors.primary : darkColors.textSecondary}
+        />
       </View>
+      <Text style={{
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 16,
+        color: variant === 'primary' ? darkColors.textPrimary : darkColors.textSecondary,
+        flex: 1
+      }}>
+        {title}
+      </Text>
+      <Ionicons
+        name="chevron-forward-outline"
+        size={20}
+        color={variant === 'primary' ? darkColors.textPrimary : darkColors.textSecondary}
+      />
     </Pressable>
   )
 
   return (
-    <LinearGradient
-      colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
-      style={{ flex: 1 }}
-    >
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>
+      <LinearGradient
+        colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
+        style={{ flex: 1 }}
+      >
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
-          {/* Header */}
-          <View style={{ marginBottom: 32 }}>
-            <Text style={{
-              fontFamily: 'Poppins_700Bold',
-              fontSize: 32,
-              color: darkColors.textPrimary,
-              marginBottom: 8
-            }}>
-              Welcome to ChartAi
-            </Text>
-            <Text style={{
-              fontFamily: 'Poppins_400Regular',
-              fontSize: 16,
-              color: darkColors.textSecondary,
-              lineHeight: 24
-            }}>
-              Your AI-powered trading companion. Analyze charts, get insights, and trade smarter.
-            </Text>
-          </View>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+          <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
+            {/* Header */}
+            <View style={{ marginBottom: 32 }}>
+              <Text style={{
+                fontFamily: 'Poppins_700Bold',
+                fontSize: 32,
+                color: darkColors.textPrimary,
+                marginBottom: 8
+              }}>
+                Upload Chart Analysis
+              </Text>
+              <Text style={{
+                fontFamily: 'Poppins_400Regular',
+                fontSize: 16,
+                color: darkColors.textSecondary,
+                lineHeight: 24
+              }}>
+                Upload your trading charts for AI-powered analysis and insights
+              </Text>
+            </View>
 
-          {/* Quick Actions */}
-          <View style={{ marginBottom: 32 }}>
-            <Text style={{
-              fontFamily: 'Poppins_600SemiBold',
-              fontSize: 20,
-              color: darkColors.textPrimary,
-              marginBottom: 20
-            }}>
-              Quick Actions
-            </Text>
+            {/* Upload Options */}
+            <View style={{ marginBottom: 32 }}>
+              <Text style={{
+                fontFamily: 'Poppins_600SemiBold',
+                fontSize: 20,
+                color: darkColors.textPrimary,
+                marginBottom: 20
+              }}>
+                Choose Upload Method
+              </Text>
 
-            <QuickActionCard
-              icon="cloud-upload-outline"
-              title="Upload Chart Analysis"
-              subtitle="Upload your charts for AI analysis and insights"
-              onPress={() => router.push('/(tabs)/upload')}
-              color={darkColors.primary}
-            />
+              <ActionButton
+                icon="camera-outline"
+                title="Take Photo"
+                onPress={takePhoto}
+                variant="primary"
+              />
 
-            <QuickActionCard
-              icon="chatbubble-outline"
-              title="Chat with Trading Bot"
-              subtitle="Get instant answers to your trading questions"
-              onPress={() => router.push('/(tabs)/chat')}
-              color="#10B981"
-            />
+              <ActionButton
+                icon="image-outline"
+                title="Choose from Gallery"
+                onPress={pickImage}
+                variant="secondary"
+              />
+            </View>
 
-            <QuickActionCard
-              icon="trending-up-outline"
-              title="Browse Indian Stocks"
-              subtitle="Explore and analyze Indian stock markets"
-              onPress={() => router.push('/(tabs)/stocks')}
-              color="#F59E0B"
-            />
-
-            <QuickActionCard
-              icon="settings-outline"
-              title="Settings & Profile"
-              subtitle="Manage your account and preferences"
-              onPress={() => router.push('/(settings)')}
-              color="#EC4899"
-            />
-          </View>
-
-          {/* Recent Activity */}
-          <View style={{ marginBottom: 32 }}>
-            <Text style={{
-              fontFamily: 'Poppins_600SemiBold',
-              fontSize: 20,
-              color: darkColors.textPrimary,
-              marginBottom: 20
-            }}>
-              Recent Activity
-            </Text>
-
-            <View style={{
-              backgroundColor: darkColors.surface,
-              borderRadius: 16,
-              padding: 20,
-              borderWidth: 1,
-              borderColor: darkColors.border,
-            }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-                <View style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: darkColors.primary + '20',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 12
+            {/* Selected Image Preview */}
+            {selectedImage && (
+              <View style={{ marginBottom: 32 }}>
+                <Text style={{
+                  fontFamily: 'Poppins_600SemiBold',
+                  fontSize: 20,
+                  color: darkColors.textPrimary,
+                  marginBottom: 20
                 }}>
-                  <Ionicons name="analytics-outline" size={20} color={darkColors.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{
-                    fontFamily: 'Poppins_500Medium',
-                    fontSize: 16,
-                    color: darkColors.textPrimary,
-                    marginBottom: 2
+                  Selected Chart
+                </Text>
+
+                <View style={{
+                  backgroundColor: darkColors.surface,
+                  borderRadius: 16,
+                  padding: 20,
+                  borderWidth: 1,
+                  borderColor: darkColors.border,
+                  alignItems: 'center'
+                }}>
+                  <View style={{
+                    width: '100%',
+                    height: 200,
+                    backgroundColor: darkColors.background,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 16
                   }}>
-                    No recent activity
-                  </Text>
-                  <Text style={{
-                    fontFamily: 'Poppins_400Regular',
-                    fontSize: 14,
-                    color: darkColors.textSecondary
-                  }}>
-                    Start by uploading a chart or chatting with our AI
-                  </Text>
+                    <Ionicons name="image-outline" size={48} color={darkColors.textSecondary} />
+                    <Text style={{
+                      fontFamily: 'Poppins_400Regular',
+                      fontSize: 14,
+                      color: darkColors.textSecondary,
+                      marginTop: 8
+                    }}>
+                      Chart Preview
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    onPress={analyzeChart}
+                    disabled={isAnalyzing}
+                    style={{
+                      backgroundColor: darkColors.primary,
+                      borderRadius: 12,
+                      paddingVertical: 16,
+                      paddingHorizontal: 32,
+                      width: '100%',
+                      alignItems: 'center',
+                      opacity: isAnalyzing ? 0.7 : 1
+                    }}
+                  >
+                    <Text style={{
+                      fontFamily: 'Poppins_600SemiBold',
+                      fontSize: 16,
+                      color: darkColors.textPrimary
+                    }}>
+                      {isAnalyzing ? 'Analyzing...' : 'Analyze Chart'}
+                    </Text>
+                  </Pressable>
                 </View>
+              </View>
+            )}
+
+            {/* Features */}
+            <View style={{ marginBottom: 32 }}>
+              <Text style={{
+                fontFamily: 'Poppins_600SemiBold',
+                fontSize: 20,
+                color: darkColors.textPrimary,
+                marginBottom: 20
+              }}>
+                What You'll Get
+              </Text>
+
+              <View style={{
+                backgroundColor: darkColors.surface,
+                borderRadius: 16,
+                padding: 20,
+                borderWidth: 1,
+                borderColor: darkColors.border,
+              }}>
+                {[
+                  { icon: 'trending-up-outline', title: 'Trend Analysis', desc: 'Identify market trends and patterns' },
+                  { icon: 'pulse-outline', title: 'Support & Resistance', desc: 'Find key price levels' },
+                  { icon: 'analytics-outline', title: 'Technical Indicators', desc: 'RSI, MACD, Moving Averages' },
+                  { icon: 'bulb-outline', title: 'AI Insights', desc: 'Get trading recommendations' },
+                ].map((feature, index) => (
+                  <View key={index} style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: index < 3 ? 16 : 0
+                  }}>
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: darkColors.primary + '20',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12
+                    }}>
+                      <Ionicons name={feature.icon as any} size={20} color={darkColors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        fontFamily: 'Poppins_500Medium',
+                        fontSize: 16,
+                        color: darkColors.textPrimary,
+                        marginBottom: 2
+                      }}>
+                        {feature.title}
+                      </Text>
+                      <Text style={{
+                        fontFamily: 'Poppins_400Regular',
+                        fontSize: 14,
+                        color: darkColors.textSecondary
+                      }}>
+                        {feature.desc}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
               </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </LinearGradient>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   )
 }

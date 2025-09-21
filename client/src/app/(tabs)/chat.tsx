@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, StatusBar, TextInput, KeyboardAvoidi
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { darkColors } from '../../components/ui'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface Message {
     id: string
@@ -116,154 +117,156 @@ export default function Chat() {
     )
 
     return (
-        <LinearGradient
-            colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
-            style={{ flex: 1 }}
-        >
-            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-
-            <KeyboardAvoidingView
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>
+            <LinearGradient
+                colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <View style={{ flex: 1 }}>
-                    {/* Header */}
-                    <View style={{
-                        paddingTop: 20,
-                        paddingHorizontal: 24,
-                        paddingBottom: 20,
-                        borderBottomWidth: 1,
-                        borderBottomColor: darkColors.border
-                    }}>
-                        <Text style={{
-                            fontFamily: 'Poppins_700Bold',
-                            fontSize: 28,
-                            color: darkColors.textPrimary,
-                            marginBottom: 8
-                        }}>
-                            Trading Bot
-                        </Text>
-                        <Text style={{
-                            fontFamily: 'Poppins_400Regular',
-                            fontSize: 16,
-                            color: darkColors.textSecondary
-                        }}>
-                            Your AI trading assistant
-                        </Text>
-                    </View>
+                <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-                    {/* Messages */}
-                    <ScrollView
-                        style={{ flex: 1, paddingHorizontal: 24 }}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingVertical: 20, paddingBottom: 100 }}
-                    >
-                        {messages.map((message: Message) => (
-                            <MessageBubble key={message.id} message={message} />
-                        ))}
-
-                        {isTyping && (
-                            <View style={{
-                                marginBottom: 16,
-                                alignItems: 'flex-start'
+                <KeyboardAvoidingView
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View style={{ flex: 1 }}>
+                        {/* Header */}
+                        <View style={{
+                            paddingTop: 20,
+                            paddingHorizontal: 24,
+                            paddingBottom: 20,
+                            borderBottomWidth: 1,
+                            borderBottomColor: darkColors.border
+                        }}>
+                            <Text style={{
+                                fontFamily: 'Poppins_700Bold',
+                                fontSize: 28,
+                                color: darkColors.textPrimary,
+                                marginBottom: 8
                             }}>
+                                Trading Bot
+                            </Text>
+                            <Text style={{
+                                fontFamily: 'Poppins_400Regular',
+                                fontSize: 16,
+                                color: darkColors.textSecondary
+                            }}>
+                                Your AI trading assistant
+                            </Text>
+                        </View>
+
+                        {/* Messages */}
+                        <ScrollView
+                            style={{ flex: 1, paddingHorizontal: 24 }}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingVertical: 20, paddingBottom: 100 }}
+                        >
+                            {messages.map((message: Message) => (
+                                <MessageBubble key={message.id} message={message} />
+                            ))}
+
+                            {isTyping && (
                                 <View style={{
-                                    backgroundColor: darkColors.surface,
-                                    borderRadius: 20,
-                                    paddingHorizontal: 16,
-                                    paddingVertical: 12,
-                                    borderWidth: 1,
-                                    borderColor: darkColors.border,
+                                    marginBottom: 16,
+                                    alignItems: 'flex-start'
                                 }}>
+                                    <View style={{
+                                        backgroundColor: darkColors.surface,
+                                        borderRadius: 20,
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 12,
+                                        borderWidth: 1,
+                                        borderColor: darkColors.border,
+                                    }}>
+                                        <Text style={{
+                                            fontFamily: 'Poppins_400Regular',
+                                            fontSize: 16,
+                                            color: darkColors.textSecondary,
+                                            fontStyle: 'italic'
+                                        }}>
+                                            AI is typing...
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Quick Questions */}
+                            {messages.length === 1 && (
+                                <View style={{ marginTop: 20 }}>
                                     <Text style={{
+                                        fontFamily: 'Poppins_600SemiBold',
+                                        fontSize: 16,
+                                        color: darkColors.textPrimary,
+                                        marginBottom: 12
+                                    }}>
+                                        Quick Questions
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                                        {quickQuestions.map((question, index) => (
+                                            <QuickQuestionButton key={index} question={question} />
+                                        ))}
+                                    </View>
+                                </View>
+                            )}
+                        </ScrollView>
+
+                        {/* Input */}
+                        <View style={{
+                            paddingHorizontal: 24,
+                            paddingVertical: 16,
+                            marginBottom: 100,
+                            borderTopWidth: 1,
+                            borderTopColor: darkColors.border,
+                            backgroundColor: darkColors.background
+                        }}>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: darkColors.surface,
+                                borderRadius: 24,
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderWidth: 1,
+                                borderColor: darkColors.border,
+                            }}>
+                                <TextInput
+                                    value={inputText}
+                                    onChangeText={setInputText}
+                                    placeholder="Ask about trading, charts, or market analysis..."
+                                    placeholderTextColor={darkColors.textTertiary}
+                                    style={{
+                                        flex: 1,
                                         fontFamily: 'Poppins_400Regular',
                                         fontSize: 16,
-                                        color: darkColors.textSecondary,
-                                        fontStyle: 'italic'
-                                    }}>
-                                        AI is typing...
-                                    </Text>
-                                </View>
-                            </View>
-                        )}
-
-                        {/* Quick Questions */}
-                        {messages.length === 1 && (
-                            <View style={{ marginTop: 20 }}>
-                                <Text style={{
-                                    fontFamily: 'Poppins_600SemiBold',
-                                    fontSize: 16,
-                                    color: darkColors.textPrimary,
-                                    marginBottom: 12
-                                }}>
-                                    Quick Questions
-                                </Text>
-                                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                                    {quickQuestions.map((question, index) => (
-                                        <QuickQuestionButton key={index} question={question} />
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-                    </ScrollView>
-
-                    {/* Input */}
-                    <View style={{
-                        paddingHorizontal: 24,
-                        paddingVertical: 16,
-                        marginBottom: 100,
-                        borderTopWidth: 1,
-                        borderTopColor: darkColors.border,
-                        backgroundColor: darkColors.background
-                    }}>
-                        <View style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: darkColors.surface,
-                            borderRadius: 24,
-                            paddingHorizontal: 16,
-                            paddingVertical: 8,
-                            borderWidth: 1,
-                            borderColor: darkColors.border,
-                        }}>
-                            <TextInput
-                                value={inputText}
-                                onChangeText={setInputText}
-                                placeholder="Ask about trading, charts, or market analysis..."
-                                placeholderTextColor={darkColors.textTertiary}
-                                style={{
-                                    flex: 1,
-                                    fontFamily: 'Poppins_400Regular',
-                                    fontSize: 16,
-                                    color: darkColors.textPrimary,
-                                    paddingVertical: 8,
-                                }}
-                                multiline
-                                maxLength={500}
-                            />
-                            <Pressable
-                                onPress={sendMessage}
-                                disabled={!inputText.trim()}
-                                style={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: 20,
-                                    backgroundColor: inputText.trim() ? darkColors.primary : darkColors.border,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginLeft: 8
-                                }}
-                            >
-                                <Ionicons
-                                    name="send"
-                                    size={20}
-                                    color={inputText.trim() ? darkColors.textPrimary : darkColors.textTertiary}
+                                        color: darkColors.textPrimary,
+                                        paddingVertical: 8,
+                                    }}
+                                    multiline
+                                    maxLength={500}
                                 />
-                            </Pressable>
+                                <Pressable
+                                    onPress={sendMessage}
+                                    disabled={!inputText.trim()}
+                                    style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 20,
+                                        backgroundColor: inputText.trim() ? darkColors.primary : darkColors.border,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginLeft: 8
+                                    }}
+                                >
+                                    <Ionicons
+                                        name="send"
+                                        size={20}
+                                        color={inputText.trim() ? darkColors.textPrimary : darkColors.textTertiary}
+                                    />
+                                </Pressable>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </KeyboardAvoidingView>
-        </LinearGradient>
+                </KeyboardAvoidingView>
+            </LinearGradient>
+        </SafeAreaView>
     )
 }

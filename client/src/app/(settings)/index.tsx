@@ -1,41 +1,21 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView, StatusBar } from 'react-native';
-import { colors, darkColors } from '../../components/ui';
+import { darkColors } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
-import { apiService } from '../../api/apiService';
 import { useToast } from '../../context/ToastContext';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Settings() {
     const { logout } = useAuth();
     const router = useRouter();
     const { showToast } = useToast();
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
     const [showAccountModal, setShowAccountModal] = useState(false);
 
     const handleLogout = async () => {
         await logout();
         router.replace('/(auth)/login');
-    };
-
-    const handleDeleteAllHabits = async () => {
-        setIsDeleting(true);
-        try {
-            const response = await apiService.deleteAllPlans();
-            if (response.success) {
-                showToast('All habits and tasks deleted successfully', 'success');
-                setShowDeleteModal(false);
-            } else {
-                showToast(response.error || 'Failed to delete habits', 'error');
-            }
-        } catch (error) {
-            showToast('Failed to delete habits', 'error');
-        } finally {
-            setIsDeleting(false);
-        }
     };
 
     const SettingItem = ({ icon, title, onPress }: { icon: string; title: string; onPress: () => void }) => (
@@ -158,24 +138,6 @@ export default function Settings() {
                     />
                 </View>
 
-                {/* Habit Management Section */}
-                <View style={{ marginBottom: 32 }}>
-                    <Text style={{
-                        fontFamily: 'Poppins_700Bold',
-                        fontSize: 18,
-                        color: darkColors.textPrimary,
-                        marginBottom: 16
-                    }}>
-                        Data Management
-                    </Text>
-
-                    <SettingItem
-                        icon="🗑️"
-                        title="Delete All Habits"
-                        onPress={() => setShowDeleteModal(true)}
-                    />
-                </View>
-
                 {/* User Support Section */}
                 <View style={{ marginBottom: 32 }}>
                     <Text style={{
@@ -232,111 +194,6 @@ export default function Settings() {
                 </Pressable>
             </ScrollView>
 
-            {/* Delete All Habits Modal */}
-            {showDeleteModal && (
-                <View style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 1000
-                }}>
-                    <View style={{
-                        backgroundColor: darkColors.surface,
-                        borderRadius: 20,
-                        padding: 32,
-                        width: '85%',
-                        maxWidth: 400,
-                        alignItems: 'center',
-                        borderWidth: 1,
-                        borderColor: darkColors.border,
-                        shadowColor: darkColors.primary,
-                        shadowOffset: { width: 0, height: 8 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 16,
-                        elevation: 8,
-                    }}>
-                        <Text style={{
-                            fontFamily: 'Poppins_700Bold',
-                            fontSize: 20,
-                            color: darkColors.textPrimary,
-                            marginBottom: 16,
-                            textAlign: 'center'
-                        }}>
-                            Delete All Habits
-                        </Text>
-
-                        <Text style={{
-                            fontFamily: 'Poppins_400Regular',
-                            fontSize: 16,
-                            color: darkColors.textSecondary,
-                            textAlign: 'center',
-                            marginBottom: 24,
-                            lineHeight: 24
-                        }}>
-                            This will delete all your habits and tasks for today, tomorrow, and in the future. This action cannot be undone.
-                        </Text>
-
-                        <Text style={{
-                            fontFamily: 'Poppins_600SemiBold',
-                            fontSize: 16,
-                            color: darkColors.error,
-                            marginBottom: 24,
-                            textAlign: 'center'
-                        }}>
-                            Are you sure you want to continue?
-                        </Text>
-
-                        <View style={{ flexDirection: 'row', gap: 16, width: '100%' }}>
-                            <Pressable
-                                onPress={() => setShowDeleteModal(false)}
-                                style={{
-                                    flex: 1,
-                                    backgroundColor: darkColors.background,
-                                    borderRadius: 12,
-                                    paddingVertical: 16,
-                                    alignItems: 'center',
-                                    borderWidth: 1,
-                                    borderColor: darkColors.border,
-                                }}
-                            >
-                                <Text style={{
-                                    fontFamily: 'Poppins_600SemiBold',
-                                    fontSize: 16,
-                                    color: darkColors.textSecondary
-                                }}>
-                                    Cancel
-                                </Text>
-                            </Pressable>
-
-                            <Pressable
-                                onPress={handleDeleteAllHabits}
-                                disabled={isDeleting}
-                                style={{
-                                    flex: 1,
-                                    backgroundColor: darkColors.error,
-                                    borderRadius: 12,
-                                    paddingVertical: 16,
-                                    alignItems: 'center',
-                                    opacity: isDeleting ? 0.7 : 1
-                                }}
-                            >
-                                <Text style={{
-                                    fontFamily: 'Poppins_600SemiBold',
-                                    fontSize: 16,
-                                    color: darkColors.textPrimary
-                                }}>
-                                    {isDeleting ? 'Deleting...' : 'Yes, Delete All'}
-                                </Text>
-                            </Pressable>
-                        </View>
-                    </View>
-                </View>
-            )}
             {/* Account Modal */}
             {showAccountModal && (
                 <View style={{
@@ -375,7 +232,7 @@ export default function Settings() {
                         </Pressable>
 
                         <Pressable
-                            onPress={() => { setShowAccountModal(false); setShowDeleteModal(true); }}
+                            onPress={() => { setShowAccountModal(false); }}
                             style={{
                                 backgroundColor: darkColors.background,
                                 borderWidth: 1,

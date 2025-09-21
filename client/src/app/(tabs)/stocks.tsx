@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, StatusBar, TextInput } from 'react-n
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { darkColors } from '../../components/ui'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface Stock {
     symbol: string
@@ -221,186 +222,188 @@ export default function Stocks() {
     )
 
     return (
-        <LinearGradient
-            colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
-            style={{ flex: 1 }}
-        >
-            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>
+            <LinearGradient
+                colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
+                style={{ flex: 1 }}
+            >
+                <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
-                    {/* Header */}
-                    <View style={{ marginBottom: 24 }}>
-                        <Text style={{
-                            fontFamily: 'Poppins_700Bold',
-                            fontSize: 32,
-                            color: darkColors.textPrimary,
-                            marginBottom: 8
-                        }}>
-                            Indian Stocks
-                        </Text>
-                        <Text style={{
-                            fontFamily: 'Poppins_400Regular',
-                            fontSize: 16,
-                            color: darkColors.textSecondary,
-                            lineHeight: 24
-                        }}>
-                            Explore and analyze Indian stock markets
-                        </Text>
-                    </View>
-
-                    {/* Search */}
-                    <View style={{ marginBottom: 24 }}>
-                        <View style={{
-                            backgroundColor: darkColors.surface,
-                            borderRadius: 12,
-                            paddingHorizontal: 16,
-                            paddingVertical: 12,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            borderColor: darkColors.border,
-                        }}>
-                            <Ionicons name="search-outline" size={20} color={darkColors.textSecondary} />
-                            <TextInput
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                                placeholder="Search stocks by symbol or name..."
-                                placeholderTextColor={darkColors.textTertiary}
-                                style={{
-                                    flex: 1,
-                                    fontFamily: 'Poppins_400Regular',
-                                    fontSize: 16,
-                                    color: darkColors.textPrimary,
-                                    marginLeft: 12
-                                }}
-                            />
+                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                    <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
+                        {/* Header */}
+                        <View style={{ marginBottom: 24 }}>
+                            <Text style={{
+                                fontFamily: 'Poppins_700Bold',
+                                fontSize: 32,
+                                color: darkColors.textPrimary,
+                                marginBottom: 8
+                            }}>
+                                Indian Stocks
+                            </Text>
+                            <Text style={{
+                                fontFamily: 'Poppins_400Regular',
+                                fontSize: 16,
+                                color: darkColors.textSecondary,
+                                lineHeight: 24
+                            }}>
+                                Explore and analyze Indian stock markets
+                            </Text>
                         </View>
-                    </View>
 
-                    {/* Categories */}
-                    <View style={{ marginBottom: 24 }}>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {categories.map((category) => (
-                                <CategoryButton key={category.id} category={category} />
-                            ))}
-                        </ScrollView>
-                    </View>
-
-                    {/* Market Overview */}
-                    <View style={{ marginBottom: 24 }}>
-                        <Text style={{
-                            fontFamily: 'Poppins_600SemiBold',
-                            fontSize: 20,
-                            color: darkColors.textPrimary,
-                            marginBottom: 16
-                        }}>
-                            Market Overview
-                        </Text>
-
-                        <View style={{
-                            backgroundColor: darkColors.surface,
-                            borderRadius: 16,
-                            padding: 20,
-                            borderWidth: 1,
-                            borderColor: darkColors.border,
-                        }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-                                <View>
-                                    <Text style={{
+                        {/* Search */}
+                        <View style={{ marginBottom: 24 }}>
+                            <View style={{
+                                backgroundColor: darkColors.surface,
+                                borderRadius: 12,
+                                paddingHorizontal: 16,
+                                paddingVertical: 12,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                borderWidth: 1,
+                                borderColor: darkColors.border,
+                            }}>
+                                <Ionicons name="search-outline" size={20} color={darkColors.textSecondary} />
+                                <TextInput
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    placeholder="Search stocks by symbol or name..."
+                                    placeholderTextColor={darkColors.textTertiary}
+                                    style={{
+                                        flex: 1,
                                         fontFamily: 'Poppins_400Regular',
-                                        fontSize: 14,
-                                        color: darkColors.textSecondary,
-                                        marginBottom: 4
-                                    }}>
-                                        Nifty 50
-                                    </Text>
-                                    <Text style={{
-                                        fontFamily: 'Poppins_700Bold',
-                                        fontSize: 24,
-                                        color: darkColors.textPrimary
-                                    }}>
-                                        19,245.30
-                                    </Text>
-                                </View>
-                                <View style={{ alignItems: 'flex-end' }}>
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        backgroundColor: '#10B981' + '20',
-                                        paddingHorizontal: 8,
-                                        paddingVertical: 4,
-                                        borderRadius: 8
-                                    }}>
-                                        <Ionicons name="trending-up" size={12} color="#10B981" />
+                                        fontSize: 16,
+                                        color: darkColors.textPrimary,
+                                        marginLeft: 12
+                                    }}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Categories */}
+                        <View style={{ marginBottom: 24 }}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                {categories.map((category) => (
+                                    <CategoryButton key={category.id} category={category} />
+                                ))}
+                            </ScrollView>
+                        </View>
+
+                        {/* Market Overview */}
+                        <View style={{ marginBottom: 24 }}>
+                            <Text style={{
+                                fontFamily: 'Poppins_600SemiBold',
+                                fontSize: 20,
+                                color: darkColors.textPrimary,
+                                marginBottom: 16
+                            }}>
+                                Market Overview
+                            </Text>
+
+                            <View style={{
+                                backgroundColor: darkColors.surface,
+                                borderRadius: 16,
+                                padding: 20,
+                                borderWidth: 1,
+                                borderColor: darkColors.border,
+                            }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+                                    <View>
                                         <Text style={{
-                                            fontFamily: 'Poppins_500Medium',
-                                            fontSize: 12,
-                                            color: '#10B981',
-                                            marginLeft: 4
+                                            fontFamily: 'Poppins_400Regular',
+                                            fontSize: 14,
+                                            color: darkColors.textSecondary,
+                                            marginBottom: 4
                                         }}>
-                                            +125.50 (+0.66%)
+                                            Nifty 50
+                                        </Text>
+                                        <Text style={{
+                                            fontFamily: 'Poppins_700Bold',
+                                            fontSize: 24,
+                                            color: darkColors.textPrimary
+                                        }}>
+                                            19,245.30
+                                        </Text>
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            backgroundColor: '#10B981' + '20',
+                                            paddingHorizontal: 8,
+                                            paddingVertical: 4,
+                                            borderRadius: 8
+                                        }}>
+                                            <Ionicons name="trending-up" size={12} color="#10B981" />
+                                            <Text style={{
+                                                fontFamily: 'Poppins_500Medium',
+                                                fontSize: 12,
+                                                color: '#10B981',
+                                                marginLeft: 4
+                                            }}>
+                                                +125.50 (+0.66%)
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View>
+                                        <Text style={{
+                                            fontFamily: 'Poppins_400Regular',
+                                            fontSize: 14,
+                                            color: darkColors.textSecondary,
+                                            marginBottom: 4
+                                        }}>
+                                            Sensex
+                                        </Text>
+                                        <Text style={{
+                                            fontFamily: 'Poppins_600SemiBold',
+                                            fontSize: 18,
+                                            color: darkColors.textPrimary
+                                        }}>
+                                            64,718.56
+                                        </Text>
+                                    </View>
+                                    <View>
+                                        <Text style={{
+                                            fontFamily: 'Poppins_400Regular',
+                                            fontSize: 14,
+                                            color: darkColors.textSecondary,
+                                            marginBottom: 4
+                                        }}>
+                                            Bank Nifty
+                                        </Text>
+                                        <Text style={{
+                                            fontFamily: 'Poppins_600SemiBold',
+                                            fontSize: 18,
+                                            color: darkColors.textPrimary
+                                        }}>
+                                            43,891.25
                                         </Text>
                                     </View>
                                 </View>
                             </View>
+                        </View>
 
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <View>
-                                    <Text style={{
-                                        fontFamily: 'Poppins_400Regular',
-                                        fontSize: 14,
-                                        color: darkColors.textSecondary,
-                                        marginBottom: 4
-                                    }}>
-                                        Sensex
-                                    </Text>
-                                    <Text style={{
-                                        fontFamily: 'Poppins_600SemiBold',
-                                        fontSize: 18,
-                                        color: darkColors.textPrimary
-                                    }}>
-                                        64,718.56
-                                    </Text>
-                                </View>
-                                <View>
-                                    <Text style={{
-                                        fontFamily: 'Poppins_400Regular',
-                                        fontSize: 14,
-                                        color: darkColors.textSecondary,
-                                        marginBottom: 4
-                                    }}>
-                                        Bank Nifty
-                                    </Text>
-                                    <Text style={{
-                                        fontFamily: 'Poppins_600SemiBold',
-                                        fontSize: 18,
-                                        color: darkColors.textPrimary
-                                    }}>
-                                        43,891.25
-                                    </Text>
-                                </View>
-                            </View>
+                        {/* Stocks List */}
+                        <View>
+                            <Text style={{
+                                fontFamily: 'Poppins_600SemiBold',
+                                fontSize: 20,
+                                color: darkColors.textPrimary,
+                                marginBottom: 16
+                            }}>
+                                Top Stocks
+                            </Text>
+
+                            {filteredStocks.map((stock) => (
+                                <StockCard key={stock.symbol} stock={stock} />
+                            ))}
                         </View>
                     </View>
-
-                    {/* Stocks List */}
-                    <View>
-                        <Text style={{
-                            fontFamily: 'Poppins_600SemiBold',
-                            fontSize: 20,
-                            color: darkColors.textPrimary,
-                            marginBottom: 16
-                        }}>
-                            Top Stocks
-                        </Text>
-
-                        {filteredStocks.map((stock) => (
-                            <StockCard key={stock.symbol} stock={stock} />
-                        ))}
-                    </View>
-                </View>
-            </ScrollView>
-        </LinearGradient>
+                </ScrollView>
+            </LinearGradient>
+        </SafeAreaView>
     )
 }
