@@ -6,6 +6,7 @@ import { darkColors } from '../../components/ui'
 import * as ImagePicker from 'expo-image-picker'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { usePushNotifications } from '../../constants/usePushNotifications'
+import { router } from 'expo-router'
 import { preloadBundledAssetsIfNeeded } from '../../constants/preloadAssets'
 import { useAuth } from '../../context/AuthContext'
 import * as Notifications from 'expo-notifications'
@@ -96,7 +97,9 @@ export default function Index() {
     })
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri)
+      const uri = result.assets[0].uri
+      setSelectedImage(uri)
+      router.push({ pathname: '/(features)/chart/preview', params: { image: uri } })
     }
   }
 
@@ -108,23 +111,15 @@ export default function Index() {
     })
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri)
+      const uri = result.assets[0].uri
+      setSelectedImage(uri)
+      router.push({ pathname: '/(features)/chart/preview', params: { image: uri } })
     }
   }
 
   const analyzeChart = async () => {
     if (!selectedImage) return
-
-    setIsAnalyzing(true)
-    // Simulate analysis
-    setTimeout(() => {
-      setIsAnalyzing(false)
-      Alert.alert(
-        'Analysis Complete!',
-        'Your chart has been analyzed. Check the results in your dashboard.',
-        [{ text: 'OK' }]
-      )
-    }, 3000)
+    router.push({ pathname: '/(features)/chart/preview', params: { image: selectedImage } })
   }
 
   const ActionButton = ({ icon, title, onPress, variant = 'primary' }: {
@@ -272,68 +267,28 @@ export default function Index() {
               />
             </View>
 
-            {/* Selected Image Preview */}
+            {/* Selected Image Preview CTA */}
             {selectedImage && (
               <View style={{ marginBottom: 32 }}>
-                <Text style={{
-                  fontFamily: 'Poppins_600SemiBold',
-                  fontSize: 20,
-                  color: darkColors.textPrimary,
-                  marginBottom: 20
-                }}>
-                  Selected Chart
-                </Text>
-
-                <View style={{
-                  backgroundColor: darkColors.surface,
-                  borderRadius: 16,
-                  padding: 20,
-                  borderWidth: 1,
-                  borderColor: darkColors.border,
-                  alignItems: 'center'
-                }}>
-                  <View style={{
-                    width: '100%',
-                    height: 200,
-                    backgroundColor: darkColors.background,
+                <Pressable
+                  onPress={analyzeChart}
+                  style={{
+                    backgroundColor: darkColors.primary,
                     borderRadius: 12,
+                    paddingVertical: 16,
+                    paddingHorizontal: 32,
+                    width: '100%',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 16
+                  }}
+                >
+                  <Text style={{
+                    fontFamily: 'Poppins_600SemiBold',
+                    fontSize: 16,
+                    color: darkColors.textPrimary
                   }}>
-                    <Ionicons name="image-outline" size={48} color={darkColors.textSecondary} />
-                    <Text style={{
-                      fontFamily: 'Poppins_400Regular',
-                      fontSize: 14,
-                      color: darkColors.textSecondary,
-                      marginTop: 8
-                    }}>
-                      Chart Preview
-                    </Text>
-                  </View>
-
-                  <Pressable
-                    onPress={analyzeChart}
-                    disabled={isAnalyzing}
-                    style={{
-                      backgroundColor: darkColors.primary,
-                      borderRadius: 12,
-                      paddingVertical: 16,
-                      paddingHorizontal: 32,
-                      width: '100%',
-                      alignItems: 'center',
-                      opacity: isAnalyzing ? 0.7 : 1
-                    }}
-                  >
-                    <Text style={{
-                      fontFamily: 'Poppins_600SemiBold',
-                      fontSize: 16,
-                      color: darkColors.textPrimary
-                    }}>
-                      {isAnalyzing ? 'Analyzing...' : 'Analyze Chart'}
-                    </Text>
-                  </Pressable>
-                </View>
+                    Preview & Confirm
+                  </Text>
+                </Pressable>
               </View>
             )}
 

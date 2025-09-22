@@ -34,6 +34,11 @@ export const API_CONFIG = {
             REGISTER: '/api/push/register',
             SEND_TEST: '/api/push/send-test',
         },
+
+        // Analysis
+        ANALYSIS: {
+            ANALYZE_CHART: '/api/analysis/analyze-chart',
+        },
     },
 
     // Request timeout (in milliseconds)

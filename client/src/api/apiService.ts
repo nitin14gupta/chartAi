@@ -257,6 +257,42 @@ class ApiService {
             body: JSON.stringify({ user_id: userId, receipt_data: receiptData, product_id: productId, sandbox })
         });
     }
+
+    // Analysis
+    async analyzeChart(imageUri: string): Promise<ApiResponse<{ patterns_detected: any[]; summary: string; annotated_image: string; advice: string[] }>> {
+        const form = new FormData();
+        // @ts-ignore - React Native FormData file spec
+        form.append('chart', {
+            uri: imageUri,
+            name: 'chart.png',
+            type: 'image/png',
+        });
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        try {
+            const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.ANALYSIS.ANALYZE_CHART}`, {
+                method: 'POST',
+                body: form as any,
+                headers: {
+                    // Let RN set the proper multipart boundary
+                    Accept: 'application/json',
+                } as any,
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+            const data = await response.json();
+            if (!response.ok) {
+                return { success: false, error: data.error || 'Analysis failed' };
+            }
+            return { success: true, data };
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            return { success: false, error: error?.message || 'Network error' };
+        }
+    }
 }
 
 // Export singleton instance

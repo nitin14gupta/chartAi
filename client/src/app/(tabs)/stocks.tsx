@@ -25,106 +25,44 @@ export default function Stocks() {
     const [error, setError] = useState<string | null>(null)
     const [liveStocks, setLiveStocks] = useState<Stock[]>([])
 
-    // Seed list of popular Indian stocks (NSE)
-    const seedStocks: Stock[] = [
-        {
-            symbol: 'RELIANCE',
-            name: 'Reliance Industries',
-            price: 2456.80,
-            change: 12.50,
-            changePercent: 0.51,
-            volume: '2.5M',
-            marketCap: '16.5L Cr'
-        },
-        {
-            symbol: 'TCS',
-            name: 'Tata Consultancy Services',
-            price: 3845.20,
-            change: -25.30,
-            changePercent: -0.65,
-            volume: '1.8M',
-            marketCap: '14.2L Cr'
-        },
-        {
-            symbol: 'HDFCBANK',
-            name: 'HDFC Bank',
-            price: 1654.90,
-            change: 8.75,
-            changePercent: 0.53,
-            volume: '3.2M',
-            marketCap: '12.8L Cr'
-        },
-        {
-            symbol: 'INFY',
-            name: 'Infosys',
-            price: 1523.45,
-            change: -15.20,
-            changePercent: -0.99,
-            volume: '2.1M',
-            marketCap: '6.3L Cr'
-        },
-        {
-            symbol: 'ICICIBANK',
-            name: 'ICICI Bank',
-            price: 987.65,
-            change: 5.40,
-            changePercent: 0.55,
-            volume: '4.5M',
-            marketCap: '6.8L Cr'
-        },
-        {
-            symbol: 'SBIN',
-            name: 'State Bank of India',
-            price: 543.20,
-            change: -2.10,
-            changePercent: -0.39,
-            volume: '5.2M',
-            marketCap: '4.8L Cr'
-        }
-    ]
-
     const categories = [
         { id: 'all', name: 'All Stocks' },
-        { id: 'nifty50', name: 'Nifty 50' },
-        { id: 'banking', name: 'Banking' },
-        { id: 'it', name: 'IT' },
-        { id: 'energy', name: 'Energy' }
     ]
 
+    const defaultSymbols = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'SBIN']
+
+    const BASE_STOCK_API = 'http://localhost:3000'
+
+    const fetchLocalNSEQuotes = async (symbols: string[]) => {
+        const url = `${BASE_STOCK_API}/nse/get_multiple_quote_info?companyNames=${encodeURIComponent(symbols.join(','))}`
+        const resp = await fetch(url)
+        if (!resp.ok) throw new Error(`NSE quotes failed: ${resp.status}`)
+        const json = await resp.json()
+        const mapped: Stock[] = (json || []).map((r: any) => ({
+            symbol: String(r?.symbol || r?.data?.symbol || ''),
+            name: String(r?.companyName || r?.data?.companyName || r?.symbol || ''),
+            price: Number(r?.lastPrice || r?.data?.lastPrice || 0),
+            change: Number((r?.change || r?.data?.change) ?? 0),
+            changePercent: Number((r?.pChange || r?.data?.pChange) ?? 0),
+            volume: String(r?.totalTradedVolume || r?.data?.totalTradedVolume || '-'),
+            marketCap: String(r?.totalMarketCap || r?.data?.totalMarketCap || '-')
+        })).filter((s: Stock) => s.symbol)
+        return mapped
+    }
+
     const filteredStocks = useMemo(() => {
-        const base = liveStocks.length ? liveStocks : seedStocks
+        const base = liveStocks
         return base.filter(stock =>
             stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
             stock.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
-    }, [liveStocks, seedStocks, searchQuery])
-
-    const fetchYahooQuotes = async (symbols: string[]) => {
-        // Yahoo Finance quote API (no CORS in React Native)
-        const querySymbols = symbols.map(s => `${s}.NS`).join(',')
-        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(querySymbols)}`
-        const resp = await fetch(url)
-        if (!resp.ok) throw new Error(`Yahoo quote failed: ${resp.status}`)
-        const json = await resp.json()
-        const results = (json?.quoteResponse?.result || []) as any[]
-        const mapped: Stock[] = results.map((r) => ({
-            symbol: (r.symbol || '').replace('.NS', ''),
-            name: r.shortName || r.longName || r.symbol || 'N/A',
-            price: Number(r.regularMarketPrice || 0),
-            change: Number(r.regularMarketChange || 0),
-            changePercent: Number(r.regularMarketChangePercent || 0),
-            volume: r.regularMarketVolume ? String(r.regularMarketVolume) : '-',
-            marketCap: r.marketCap ? String(r.marketCap) : '-',
-        }))
-        return mapped
-    }
+    }, [liveStocks, searchQuery])
 
     const loadData = async (isPull = false) => {
         try {
             setError(null)
             isPull ? setIsRefreshing(true) : setIsLoading(true)
-            const symbols = seedStocks.map(s => s.symbol)
-            const live = await fetchYahooQuotes(symbols)
+            const live = await fetchLocalNSEQuotes(defaultSymbols)
             setLiveStocks(live)
         } catch (e: any) {
             setError(e?.message || 'Failed to load stocks')

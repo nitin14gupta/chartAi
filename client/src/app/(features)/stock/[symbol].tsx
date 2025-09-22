@@ -15,35 +15,38 @@ export default function StockDetail() {
     const [quote, setQuote] = useState<any>(null)
     const [candles, setCandles] = useState<YahooCandle[]>([])
 
-    const nsSymbol = `${symbol}.NS`
+    const BASE_STOCK_API = 'http://localhost:3000'
 
     const fetchQuote = async () => {
-        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(nsSymbol)}`
+        const url = `${BASE_STOCK_API}/nse/get_quote_info?companyName=${encodeURIComponent(String(symbol))}`
         const resp = await fetch(url)
         if (!resp.ok) throw new Error('Quote fetch failed')
-        const json = await resp.json()
-        const res = json?.quoteResponse?.result?.[0]
-        return res
+        const data = await resp.json()
+        return data
     }
 
     const fetchHistorical = async () => {
-        // Yahoo historical chart API
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(nsSymbol)}?range=1mo&interval=1d`
-        const resp = await fetch(url)
-        if (!resp.ok) throw new Error('History fetch failed')
-        const json = await resp.json()
-        const result = json?.chart?.result?.[0]
-        const timestamps: number[] = result?.timestamp || []
-        const ohlc = result?.indicators?.quote?.[0] || {}
-        const mapped: YahooCandle[] = timestamps.map((t: number, i: number) => ({
-            date: t * 1000,
-            open: Number(ohlc.open?.[i] ?? 0),
-            high: Number(ohlc.high?.[i] ?? 0),
-            low: Number(ohlc.low?.[i] ?? 0),
-            close: Number(ohlc.close?.[i] ?? 0),
-            volume: Number(ohlc.volume?.[i] ?? 0),
-        }))
-        return mapped
+        // Optional: Try to fetch chart data; if fails, return empty
+        try {
+            const url = `${BASE_STOCK_API}/nse/get_chart_data_new?companyName=${encodeURIComponent(String(symbol))}&time=month`
+            const resp = await fetch(url)
+            if (!resp.ok) throw new Error('History fetch failed')
+            const data = await resp.json()
+            // Best-effort parse; if not an array of points, return empty
+            const series: YahooCandle[] = Array.isArray(data)
+                ? data.map((p: any) => ({
+                    date: Number(p?.date || p?.t || Date.now()),
+                    open: Number(p?.open || p?.o || 0),
+                    high: Number(p?.high || p?.h || 0),
+                    low: Number(p?.low || p?.l || 0),
+                    close: Number(p?.close || p?.c || 0),
+                    volume: Number(p?.volume || p?.v || 0)
+                }))
+                : []
+            return series
+        } catch {
+            return []
+        }
     }
 
     const load = async () => {
@@ -100,13 +103,13 @@ export default function StockDetail() {
                         <>
                             {/* Quote summary */}
                             <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: darkColors.textPrimary }}>{quote?.shortName || quote?.longName || symbol}</Text>
+                                <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: darkColors.textPrimary }}>{quote?.companyName || quote?.symbol || symbol}</Text>
                                 <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 28, color: darkColors.textPrimary, marginTop: 6 }}>
-                                    ₹{Number(quote?.regularMarketPrice || latest?.close || 0).toFixed(2)}
+                                    ₹{Number(quote?.lastPrice || latest?.close || 0).toFixed(2)}
                                 </Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-                                    <Text style={{ color: (quote?.regularMarketChange || 0) >= 0 ? '#10B981' : '#EF4444', fontFamily: 'Poppins_500Medium' }}>
-                                        {Number(quote?.regularMarketChange || 0).toFixed(2)} ({Number(quote?.regularMarketChangePercent || 0).toFixed(2)}%)
+                                    <Text style={{ color: (Number(quote?.change || 0)) >= 0 ? '#10B981' : '#EF4444', fontFamily: 'Poppins_500Medium' }}>
+                                        {Number(quote?.change || 0).toFixed(2)} ({Number(quote?.pChange || 0).toFixed(2)}%)
                                     </Text>
                                 </View>
                             </View>
@@ -128,11 +131,11 @@ export default function StockDetail() {
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View>
                                         <Text style={{ color: darkColors.textSecondary, fontFamily: 'Poppins_400Regular' }}>Day High</Text>
-                                        <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_600SemiBold', marginTop: 4 }}>₹{Number(quote?.regularMarketDayHigh || latest?.high || 0).toFixed(2)}</Text>
+                                        <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_600SemiBold', marginTop: 4 }}>₹{Number(quote?.dayHigh || latest?.high || 0).toFixed(2)}</Text>
                                     </View>
                                     <View>
                                         <Text style={{ color: darkColors.textSecondary, fontFamily: 'Poppins_400Regular' }}>Day Low</Text>
-                                        <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_600SemiBold', marginTop: 4 }}>₹{Number(quote?.regularMarketDayLow || latest?.low || 0).toFixed(2)}</Text>
+                                        <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_600SemiBold', marginTop: 4 }}>₹{Number(quote?.dayLow || latest?.low || 0).toFixed(2)}</Text>
                                     </View>
                                 </View>
                             </View>
