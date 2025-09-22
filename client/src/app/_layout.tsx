@@ -9,6 +9,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as NavigationBar from "expo-navigation-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -33,15 +34,17 @@ export default function RootLayout() {
       <OnboardingProvider>
         <ToastProvider>
           <SafeAreaProvider>
-            <StatusBar style="light-content" backgroundColor="transparent" translucent />
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(settings)" options={{ headerShown: false }} />
-              <Stack.Screen name="(features)" options={{ headerShown: false }} />
-            </Stack>
+            <StatusBar style="light" backgroundColor="transparent" translucent />
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <Stack>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(settings)" options={{ headerShown: false }} />
+                <Stack.Screen name="(features)" options={{ headerShown: false }} />
+              </Stack>
+            </GestureHandlerRootView>
           </SafeAreaProvider>
         </ToastProvider>
       </OnboardingProvider>

@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react'
-import { View, Text, Image, ScrollView } from 'react-native'
+import React, { useMemo, useState } from 'react'
+import { View, Text, Image, ScrollView, Modal, Pressable } from 'react-native'
+import ImageViewer from 'react-native-image-zoom-viewer'
 import { useLocalSearchParams } from 'expo-router'
 import { darkColors } from '../../../components/ui'
 
@@ -20,17 +21,50 @@ type AnalysisData = {
 export default function ChartResults() {
     const params = useLocalSearchParams<{ data?: string }>()
     const data = useMemo<AnalysisData | null>(() => {
-        try { return params.data ? JSON.parse(params.data) : null } catch { return null }
+        try {
+            return params.data ? JSON.parse(params.data) : null
+        } catch {
+            return null
+        }
     }, [params.data])
+
+    const [isModalVisible, setModalVisible] = useState(false)
 
     return (
         <ScrollView style={{ flex: 1, backgroundColor: '#000000' }} contentContainerStyle={{ padding: 16 }}>
-            <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_700Bold', fontSize: 20, marginBottom: 12 }}>Results</Text>
+            <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_700Bold', fontSize: 20, marginBottom: 12 }}>
+                Results
+            </Text>
 
             {data?.annotated_image && (
-                <View style={{ backgroundColor: darkColors.surface, borderRadius: 12, borderWidth: 1, borderColor: darkColors.border, overflow: 'hidden', marginBottom: 16 }}>
-                    <Image source={{ uri: data.annotated_image }} style={{ width: '100%', height: 220, resizeMode: 'contain' }} />
-                </View>
+                <>
+                    <Pressable
+                        onPress={() => setModalVisible(true)}
+                        style={{
+                            backgroundColor: darkColors.surface,
+                            borderRadius: 12,
+                            borderWidth: 1,
+                            borderColor: darkColors.border,
+                            overflow: 'hidden',
+                            marginBottom: 16,
+                        }}
+                    >
+                        <Image
+                            source={{ uri: data.annotated_image }}
+                            style={{ width: '100%', height: 220, resizeMode: 'contain' }}
+                        />
+                    </Pressable>
+
+                    <Modal visible={isModalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
+                        <ImageViewer
+                            imageUrls={[{ url: data.annotated_image }]}
+                            enableSwipeDown={true}
+                            onSwipeDown={() => setModalVisible(false)}
+                            renderIndicator={() => <></>}
+                            backgroundColor="black"
+                        />
+                    </Modal>
+                </>
             )}
 
             <View style={{ backgroundColor: darkColors.surface, borderRadius: 12, borderWidth: 1, borderColor: darkColors.border, padding: 16, marginBottom: 16 }}>

@@ -63,14 +63,25 @@ class AIInsightsService:
                 .get('parts', [{}])[0]
                 .get('text', '{}')
             )
-            data = json.loads(content_text)
+            # Try parse as-is, otherwise extract JSON substring
+            try:
+                data = json.loads(content_text)
+            except Exception:
+                # Best-effort JSON extraction
+                start = content_text.find('{')
+                end = content_text.rfind('}')
+                if start != -1 and end != -1 and end > start:
+                    snippet = content_text[start:end+1]
+                    data = json.loads(snippet)
+                else:
+                    raise ValueError('No JSON payload in model response')
             # Ensure keys exist
             for key in ['summary','explanations','entry_signals','exit_signals','risk_management','confidence_notes']:
                 data.setdefault(key, [] if key != 'summary' else '')
             return data
         except Exception:
             return {
-                'summary': 'AI insights unavailable or parsing failed.',
+                'summary': 'AI insights unavailable or parsing failed. Check GEMINI_API_KEY/GEMINI_MODEL.',
                 'explanations': [],
                 'entry_signals': [],
                 'exit_signals': [],
