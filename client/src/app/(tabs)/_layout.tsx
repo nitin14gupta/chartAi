@@ -11,7 +11,7 @@ export default function TabsLayout() {
                         <Label>Upload</Label>
                         <Icon
                             sf={{ default: "chart.line.uptrend.xyaxis", selected: "chart.line.uptrend.xyaxis" }}
-                            drawable="ic_menu_mylocation"
+                            drawable="stat_sys_upload"
                         />
                         <Badge>1</Badge>
                     </NativeTabs.Trigger>
@@ -20,7 +20,7 @@ export default function TabsLayout() {
                         <Label>Chat</Label>
                         <Icon
                             sf={{ default: "message", selected: "message.fill" }}
-                            drawable="ic_menu_manage"
+                            drawable="sym_action_chat"
                         />
                     </NativeTabs.Trigger>
 
@@ -28,7 +28,7 @@ export default function TabsLayout() {
                         <Label>Stocks</Label>
                         <Icon
                             sf={{ default: "chart.bar", selected: "chart.bar.fill" }}
-                            drawable="ic_menu_mylocation"
+                            drawable="stat_sys_download_done"
                         />
                     </NativeTabs.Trigger>
 
@@ -36,7 +36,7 @@ export default function TabsLayout() {
                         <Label>Profile</Label>
                         <Icon
                             sf={{ default: "person", selected: "person.fill" }}
-                            drawable="arrow_down_float"
+                            drawable="sym_contact_card"
                         />
                     </NativeTabs.Trigger>
                 </NativeTabs>

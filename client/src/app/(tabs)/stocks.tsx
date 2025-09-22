@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
-import { View, Text, ScrollView, Pressable, StatusBar, TextInput } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
+import { View, Text, ScrollView, Pressable, StatusBar, TextInput, RefreshControl, ActivityIndicator } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { darkColors } from '../../components/ui'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
 
 interface Stock {
     symbol: string
@@ -16,11 +17,16 @@ interface Stock {
 }
 
 export default function Stocks() {
+    const router = useRouter()
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('all')
+    const [isLoading, setIsLoading] = useState(false)
+    const [isRefreshing, setIsRefreshing] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [liveStocks, setLiveStocks] = useState<Stock[]>([])
 
-    // Mock data for Indian stocks
-    const stocks: Stock[] = [
+    // Seed list of popular Indian stocks (NSE)
+    const seedStocks: Stock[] = [
         {
             symbol: 'RELIANCE',
             name: 'Reliance Industries',
@@ -85,13 +91,57 @@ export default function Stocks() {
         { id: 'energy', name: 'Energy' }
     ]
 
-    const filteredStocks = stocks.filter(stock =>
-        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        stock.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filteredStocks = useMemo(() => {
+        const base = liveStocks.length ? liveStocks : seedStocks
+        return base.filter(stock =>
+            stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            stock.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    }, [liveStocks, seedStocks, searchQuery])
+
+    const fetchYahooQuotes = async (symbols: string[]) => {
+        // Yahoo Finance quote API (no CORS in React Native)
+        const querySymbols = symbols.map(s => `${s}.NS`).join(',')
+        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(querySymbols)}`
+        const resp = await fetch(url)
+        if (!resp.ok) throw new Error(`Yahoo quote failed: ${resp.status}`)
+        const json = await resp.json()
+        const results = (json?.quoteResponse?.result || []) as any[]
+        const mapped: Stock[] = results.map((r) => ({
+            symbol: (r.symbol || '').replace('.NS', ''),
+            name: r.shortName || r.longName || r.symbol || 'N/A',
+            price: Number(r.regularMarketPrice || 0),
+            change: Number(r.regularMarketChange || 0),
+            changePercent: Number(r.regularMarketChangePercent || 0),
+            volume: r.regularMarketVolume ? String(r.regularMarketVolume) : '-',
+            marketCap: r.marketCap ? String(r.marketCap) : '-',
+        }))
+        return mapped
+    }
+
+    const loadData = async (isPull = false) => {
+        try {
+            setError(null)
+            isPull ? setIsRefreshing(true) : setIsLoading(true)
+            const symbols = seedStocks.map(s => s.symbol)
+            const live = await fetchYahooQuotes(symbols)
+            setLiveStocks(live)
+        } catch (e: any) {
+            setError(e?.message || 'Failed to load stocks')
+        } finally {
+            isPull ? setIsRefreshing(false) : setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadData()
+        const id = setInterval(() => loadData(true), 30000)
+        return () => clearInterval(id)
+    }, [])
 
     const StockCard = ({ stock }: { stock: Stock }) => (
         <Pressable
+            onPress={() => router.push({ pathname: '/(features)/stock/[symbol]', params: { symbol: stock.symbol } })}
             style={{
                 backgroundColor: darkColors.surface,
                 borderRadius: 16,
@@ -229,7 +279,12 @@ export default function Stocks() {
             >
                 <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                <ScrollView
+                    style={{ flex: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                    refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => loadData(true)} tintColor={darkColors.textSecondary} />}
+                >
                     <View style={{ paddingTop: 10, paddingHorizontal: 24, paddingBottom: 32 }}>
                         {/* Header */}
                         <View style={{ marginBottom: 24 }}>
@@ -288,7 +343,20 @@ export default function Stocks() {
                             </ScrollView>
                         </View>
 
-                        {/* Market Overview */}
+                        {/* Loading / Error */}
+                        {isLoading && (
+                            <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                                <ActivityIndicator color={darkColors.primary} />
+                                <Text style={{ color: darkColors.textSecondary, marginTop: 8, fontFamily: 'Poppins_400Regular' }}>Loading live data…</Text>
+                            </View>
+                        )}
+                        {error && (
+                            <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                                <Text style={{ color: darkColors.error, fontFamily: 'Poppins_500Medium' }}>{error}</Text>
+                            </View>
+                        )}
+
+                        {/* Market Overview (static sample) */}
                         <View style={{ marginBottom: 24 }}>
                             <Text style={{
                                 fontFamily: 'Poppins_600SemiBold',
