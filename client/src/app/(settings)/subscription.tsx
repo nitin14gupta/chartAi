@@ -3,7 +3,8 @@ import { View, Text, Pressable, ScrollView, Image, Dimensions, StatusBar, Animat
 import { useRouter } from 'expo-router';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
-import { colors } from '../../components/ui';
+import { darkColors } from '../../components/darkUI';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -87,16 +88,32 @@ export default function Subscription() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F5FAFF' }}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5FAFF" />
+        <LinearGradient
+            colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
+            style={{ flex: 1 }}
+        >
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
             {false && <View />}
 
             {/* Header */}
-            <View style={{ paddingTop: 15, paddingHorizontal: 20, paddingBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
-                <Pressable onPress={() => router.back()} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                    <Text style={{ fontSize: 18, color: '#6B7280' }}>✕</Text>
+            <View style={{ paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
+                <Pressable onPress={() => router.back()} style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: darkColors.surfaceElevated,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                    shadowColor: darkColors.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
+                    elevation: 4
+                }}>
+                    <Text style={{ fontSize: 18, color: darkColors.textSecondary }}>✕</Text>
                 </Pressable>
-                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 22, color: '#111827' }}>Choose Your Plan</Text>
+                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 22, color: darkColors.textPrimary }}>Choose Your Plan</Text>
             </View>
 
             <ScrollView style={{ flex: 1 }}>
@@ -138,7 +155,7 @@ export default function Subscription() {
                                     padding: 12
                                 }}>
                                     <Text style={{
-                                        color: 'white',
+                                        color: darkColors.textPrimary,
                                         fontFamily: 'Poppins_600SemiBold',
                                         fontSize: 16,
                                         textAlign: 'center'
@@ -161,15 +178,15 @@ export default function Subscription() {
                 </View>
 
                 <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
-                    <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 24, color: '#111827', textAlign: 'center', marginBottom: 8 }}>
+                    <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 24, color: darkColors.textPrimary, textAlign: 'center', marginBottom: 8 }}>
                         {isPremium ? 'You are User Premium 🎉' : 'Discover your Perfect Day!'}
                     </Text>
                     {!isPremium ? (
-                        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 20 }}>
+                        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: darkColors.textSecondary, textAlign: 'center', marginBottom: 20 }}>
                             Visualize your ideal day. Effortless start with a Library of 100+ Habits.
                         </Text>
                     ) : (
-                        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 20 }}>
+                        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: darkColors.textSecondary, textAlign: 'center', marginBottom: 20 }}>
                             Active until {formatExpiry()}. Extend your plan below.
                         </Text>
                     )}
@@ -180,17 +197,17 @@ export default function Subscription() {
                             {/* Most Popular Badge */}
                             <View style={{ alignItems: 'center', marginBottom: 16 }}>
                                 <View style={{
-                                    backgroundColor: colors.purple,
+                                    backgroundColor: darkColors.primary,
                                     paddingHorizontal: 20,
                                     paddingVertical: 8,
                                     borderRadius: 20,
-                                    shadowColor: colors.purple,
+                                    shadowColor: darkColors.primary,
                                     shadowOffset: { width: 0, height: 4 },
                                     shadowOpacity: 0.3,
                                     shadowRadius: 8,
                                     elevation: 4
                                 }}>
-                                    <Text style={{ color: 'white', fontFamily: 'Poppins_600SemiBold', fontSize: 14 }}>
+                                    <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_600SemiBold', fontSize: 14 }}>
                                         ⭐ Most Popular
                                     </Text>
                                 </View>
@@ -200,12 +217,12 @@ export default function Subscription() {
                                 {/* Yearly Plan - Featured */}
                                 <View style={{
                                     flex: 1,
-                                    backgroundColor: 'white',
+                                    backgroundColor: darkColors.surface,
                                     borderRadius: 20,
                                     padding: 20,
                                     borderWidth: 3,
-                                    borderColor: colors.purple,
-                                    shadowColor: '#000',
+                                    borderColor: darkColors.primary,
+                                    shadowColor: darkColors.primary,
                                     shadowOffset: { width: 0, height: 8 },
                                     shadowOpacity: 0.15,
                                     shadowRadius: 16,
@@ -215,7 +232,7 @@ export default function Subscription() {
                                         position: 'absolute',
                                         top: -10,
                                         right: 20,
-                                        backgroundColor: colors.purple,
+                                        backgroundColor: darkColors.primary,
                                         paddingHorizontal: 12,
                                         paddingVertical: 4,
                                         borderRadius: 12
@@ -226,7 +243,7 @@ export default function Subscription() {
                                     </View>
 
                                     <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                                        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 36, color: colors.purple, marginBottom: 4 }}>12</Text>
+                                        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 36, color: darkColors.primary, marginBottom: 4 }}>12</Text>
                                         <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: '#6B7280' }}>Months</Text>
                                     </View>
 
@@ -238,11 +255,11 @@ export default function Subscription() {
                                     <Pressable
                                         onPress={() => purchase('yearly')}
                                         style={{
-                                            backgroundColor: colors.purple,
+                                            backgroundColor: darkColors.primary,
                                             borderRadius: 12,
                                             paddingVertical: 14,
                                             alignItems: 'center',
-                                            shadowColor: colors.purple,
+                                            shadowColor: darkColors.primary,
                                             shadowOffset: { width: 0, height: 4 },
                                             shadowOpacity: 0.3,
                                             shadowRadius: 8,
@@ -258,31 +275,31 @@ export default function Subscription() {
                                 {/* Weekly Plan */}
                                 <View style={{
                                     flex: 1,
-                                    backgroundColor: 'white',
+                                    backgroundColor: darkColors.surface,
                                     borderRadius: 20,
                                     padding: 20,
                                     borderWidth: 1,
-                                    borderColor: '#E5E7EB',
-                                    shadowColor: '#000',
+                                    borderColor: darkColors.border,
+                                    shadowColor: darkColors.primary,
                                     shadowOffset: { width: 0, height: 4 },
                                     shadowOpacity: 0.1,
                                     shadowRadius: 8,
                                     elevation: 4
                                 }}>
                                     <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                                        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 36, color: '#111827', marginBottom: 4 }}>1</Text>
-                                        <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: '#6B7280' }}>Week</Text>
+                                        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 36, color: darkColors.textPrimary, marginBottom: 4 }}>1</Text>
+                                        <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: darkColors.textSecondary }}>Week</Text>
                                     </View>
 
                                     <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                                        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 18, color: '#111827' }}>₹700</Text>
-                                        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#6B7280' }}>per week</Text>
+                                        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 18, color: darkColors.textPrimary }}>₹700</Text>
+                                        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 12, color: darkColors.textSecondary }}>per week</Text>
                                     </View>
 
                                     <Pressable
                                         onPress={() => purchase('weekly')}
                                         style={{
-                                            backgroundColor: '#111827',
+                                            backgroundColor: darkColors.surfaceElevated,
                                             borderRadius: 12,
                                             paddingVertical: 14,
                                             alignItems: 'center'
@@ -296,8 +313,8 @@ export default function Subscription() {
                             </View>
 
                             {/* Features List */}
-                            <View style={{ backgroundColor: 'white', borderRadius: 16, padding: 20, marginBottom: 20 }}>
-                                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 18, color: '#111827', marginBottom: 16, textAlign: 'center' }}>
+                            <View style={{ backgroundColor: darkColors.surface, borderRadius: 16, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: darkColors.border }}>
+                                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 18, color: darkColors.textPrimary, marginBottom: 16, textAlign: 'center' }}>
                                     What You Get
                                 </Text>
                                 <View style={{ gap: 12 }}>
@@ -310,7 +327,7 @@ export default function Subscription() {
                                         '🎁 Exclusive content & tips'
                                     ].map((feature, index) => (
                                         <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: '#111827' }}>
+                                            <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: darkColors.textPrimary }}>
                                                 {feature}
                                             </Text>
                                         </View>
@@ -320,13 +337,13 @@ export default function Subscription() {
                         </View>
                     ) : (
                         <View style={{
-                            backgroundColor: 'white',
+                            backgroundColor: darkColors.surface,
                             borderRadius: 20,
                             padding: 24,
                             borderWidth: 2,
-                            borderColor: colors.purple,
+                            borderColor: darkColors.primary,
                             marginBottom: 20,
-                            shadowColor: colors.purple,
+                            shadowColor: darkColors.primary,
                             shadowOffset: { width: 0, height: 8 },
                             shadowOpacity: 0.2,
                             shadowRadius: 16,
@@ -334,10 +351,10 @@ export default function Subscription() {
                         }}>
                             <View style={{ alignItems: 'center', marginBottom: 20 }}>
                                 <Text style={{ fontSize: 40, marginBottom: 8 }}>🎉</Text>
-                                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 20, color: colors.purple, marginBottom: 8 }}>
+                                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 20, color: darkColors.primary, marginBottom: 8 }}>
                                     You're Premium!
                                 </Text>
-                                <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: '#6B7280', textAlign: 'center' }}>
+                                <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 14, color: darkColors.textSecondary, textAlign: 'center' }}>
                                     Active until {formatExpiry()}. Extend your plan below.
                                 </Text>
                             </View>
@@ -347,7 +364,7 @@ export default function Subscription() {
                                     onPress={() => purchase('weekly')}
                                     style={{
                                         flex: 1,
-                                        backgroundColor: colors.purple,
+                                        backgroundColor: darkColors.primary,
                                         borderRadius: 12,
                                         paddingVertical: 14,
                                         alignItems: 'center'
@@ -361,7 +378,7 @@ export default function Subscription() {
                                     onPress={() => purchase('yearly')}
                                     style={{
                                         flex: 1,
-                                        backgroundColor: '#111827',
+                                        backgroundColor: darkColors.surfaceElevated,
                                         borderRadius: 12,
                                         paddingVertical: 14,
                                         alignItems: 'center'
@@ -378,14 +395,14 @@ export default function Subscription() {
                     {/* Trust indicators */}
                     <View style={{ alignItems: 'center', marginBottom: 20 }}>
                         <View style={{
-                            backgroundColor: 'rgba(107, 70, 193, 0.1)',
+                            backgroundColor: darkColors.primary + '20',
                             paddingHorizontal: 16,
                             paddingVertical: 8,
                             borderRadius: 20,
                             marginBottom: 12
                         }}>
                             <Text style={{
-                                color: colors.purple,
+                                color: darkColors.primary,
                                 fontFamily: 'Poppins_600SemiBold',
                                 fontSize: 12
                             }}>
@@ -401,26 +418,26 @@ export default function Subscription() {
                         marginBottom: 32,
                         paddingTop: 20,
                         borderTopWidth: 1,
-                        borderTopColor: '#E5E7EB'
+                        borderTopColor: darkColors.border
                     }}>
                         <Pressable onPress={() => router.push('/(settings)/terms')}>
-                            <Text style={{ color: colors.purple, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
+                            <Text style={{ color: darkColors.primary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
                                 Terms & Conditions
                             </Text>
                         </Pressable>
                         <Pressable onPress={() => router.push('/(settings)/privacy')}>
-                            <Text style={{ color: colors.purple, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
+                            <Text style={{ color: darkColors.primary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
                                 Privacy Policy
                             </Text>
                         </Pressable>
                         <Pressable onPress={() => router.push('/(settings)')}>
-                            <Text style={{ color: colors.purple, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
+                            <Text style={{ color: darkColors.primary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
                                 Settings
                             </Text>
                         </Pressable>
                     </View>
                 </View>
             </ScrollView>
-        </View>
+        </LinearGradient>
     );
 }

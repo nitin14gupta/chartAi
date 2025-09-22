@@ -12,6 +12,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -51,6 +52,8 @@ export default function Register() {
 
         if (result.success) {
             showToast("Account created successfully! Welcome to ChartAi! 🌟", "success");
+            // Set flag to indicate user is coming from register
+            await AsyncStorage.setItem('isFromRegister', 'true');
             router.replace("/(tabs)");
         } else {
             showToast(result.error || "Failed to create account", "error");
@@ -64,6 +67,8 @@ export default function Register() {
                 const result = await loginWithGoogle(idToken);
                 if (result.success) {
                     showToast("Account created successfully! Welcome to ChartAi! 🌟", "success");
+                    // Set flag to indicate user is coming from register
+                    await AsyncStorage.setItem('isFromRegister', 'true');
                     router.replace("/(tabs)");
                 } else {
                     showToast(result.error || "Google sign-in failed", "error");
@@ -111,6 +116,8 @@ export default function Register() {
 
                 if (result.success) {
                     showToast("Account created successfully! Welcome to ChartAi! 🌟", "success");
+                    // Set flag to indicate user is coming from register
+                    await AsyncStorage.setItem('isFromRegister', 'true');
                     router.replace("/(tabs)");
                 } else {
                     showToast(result.error || "Apple sign-in failed", "error");

@@ -1,14 +1,91 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Pressable, StatusBar, Alert } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { darkColors } from '../../components/ui'
 import * as ImagePicker from 'expo-image-picker'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { usePushNotifications } from '../../constants/usePushNotifications'
+import { preloadBundledAssetsIfNeeded } from '../../constants/preloadAssets'
+import { useAuth } from '../../context/AuthContext'
+import * as Notifications from 'expo-notifications'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function Index() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isPreloading, setIsPreloading] = useState(true)
+  const { expoPushToken } = usePushNotifications()
+  const { user } = useAuth()
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Preload assets
+        await preloadBundledAssetsIfNeeded()
+        setIsPreloading(false)
+
+        // Check if user is coming from register screen
+        const isFromRegister = await AsyncStorage.getItem('isFromRegister')
+        if (isFromRegister === 'true') {
+          // Clear the flag
+          await AsyncStorage.removeItem('isFromRegister')
+
+          // Request notification permission and send welcome notification
+          await requestNotificationPermission()
+        } else {
+          // Check if we've already asked for notifications
+          const hasAskedForNotifications = await AsyncStorage.getItem('hasAskedForNotifications')
+          if (!hasAskedForNotifications) {
+            await requestNotificationPermission()
+          }
+        }
+      } catch (error) {
+        console.log('App initialization error:', error)
+        setIsPreloading(false)
+      }
+    }
+
+    initializeApp()
+  }, [])
+
+  const requestNotificationPermission = async () => {
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync()
+      let finalStatus = existingStatus
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync()
+        finalStatus = status
+      }
+
+      if (finalStatus === 'granted') {
+        // Send welcome notification
+        await sendWelcomeNotification()
+        await AsyncStorage.setItem('hasAskedForNotifications', 'true')
+      } else {
+        // User declined, ask again next time
+        await AsyncStorage.setItem('hasAskedForNotifications', 'false')
+      }
+    } catch (error) {
+      console.log('Notification permission error:', error)
+    }
+  }
+
+  const sendWelcomeNotification = async () => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Welcome to ChartAi! 🎉',
+          body: 'Start analyzing your trading charts with AI-powered insights',
+          sound: 'default',
+        },
+        trigger: null,
+      })
+    } catch (error) {
+      console.log('Welcome notification error:', error)
+    }
+  }
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -104,6 +181,38 @@ export default function Index() {
       />
     </Pressable>
   )
+
+  if (isPreloading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>
+        <LinearGradient
+          colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{
+              fontFamily: 'Poppins_600SemiBold',
+              fontSize: 18,
+              color: darkColors.textPrimary,
+              marginBottom: 16
+            }}>
+              Loading ChartAi...
+            </Text>
+            <View style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderWidth: 3,
+              borderColor: darkColors.border,
+              borderTopColor: darkColors.primary,
+              // animation: 'spin'
+            }} />
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    )
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>

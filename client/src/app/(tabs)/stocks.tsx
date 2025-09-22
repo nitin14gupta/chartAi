@@ -230,14 +230,13 @@ export default function Stocks() {
                 <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                    <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
+                    <View style={{ paddingTop: 10, paddingHorizontal: 24, paddingBottom: 32 }}>
                         {/* Header */}
                         <View style={{ marginBottom: 24 }}>
                             <Text style={{
                                 fontFamily: 'Poppins_700Bold',
-                                fontSize: 32,
+                                fontSize: 24,
                                 color: darkColors.textPrimary,
-                                marginBottom: 8
                             }}>
                                 Indian Stocks
                             </Text>
@@ -267,7 +266,7 @@ export default function Stocks() {
                                 <TextInput
                                     value={searchQuery}
                                     onChangeText={setSearchQuery}
-                                    placeholder="Search stocks by symbol or name..."
+                                    placeholder="Search stocks by name..."
                                     placeholderTextColor={darkColors.textTertiary}
                                     style={{
                                         flex: 1,

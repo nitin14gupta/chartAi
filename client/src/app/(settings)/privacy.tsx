@@ -1,15 +1,19 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StatusBar } from 'react-native';
-import { colors } from '../../components/ui';
+import { darkColors } from '../../components/darkUI';
 import { useRouter } from 'expo-router';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Privacy() {
     const router = useRouter();
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#FFF9F0' }}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFF9F0" />
+        <LinearGradient
+            colors={[darkColors.gradientStart, darkColors.gradientEnd, darkColors.background]}
+            style={{ flex: 1 }}
+        >
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* Header */}
             <View style={{
@@ -25,18 +29,23 @@ export default function Privacy() {
                         width: 40,
                         height: 40,
                         borderRadius: 20,
-                        backgroundColor: colors.primary,
+                        backgroundColor: darkColors.surfaceElevated,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginRight: 16
+                        marginRight: 16,
+                        shadowColor: darkColors.primary,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 8,
+                        elevation: 4
                     }}
                 >
-                    <Ionicons name="chevron-back-outline" size={20} color="#6B7280" />
+                    <Ionicons name="chevron-back-outline" size={20} color={darkColors.textSecondary} />
                 </Pressable>
                 <Text style={{
                     fontFamily: 'Poppins_700Bold',
                     fontSize: 24,
-                    color: '#111827',
+                    color: darkColors.textPrimary,
                     flex: 1
                 }}>
                     Privacy Policy
@@ -45,20 +54,22 @@ export default function Privacy() {
 
             <ScrollView style={{ flex: 1, paddingHorizontal: 20 }}>
                 <View style={{
-                    backgroundColor: 'white',
+                    backgroundColor: darkColors.surface,
                     borderRadius: 12,
                     padding: 24,
                     marginBottom: 20,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 2,
-                    elevation: 2
+                    borderWidth: 1,
+                    borderColor: darkColors.border,
+                    shadowColor: darkColors.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 4
                 }}>
                     <Text style={{
                         fontFamily: 'Poppins_700Bold',
                         fontSize: 20,
-                        color: '#111827',
+                        color: darkColors.textPrimary,
                         marginBottom: 16
                     }}>
                         Last Updated: September 16, 2025
@@ -67,7 +78,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_400Regular',
                         fontSize: 16,
-                        color: '#374151',
+                        color: darkColors.textSecondary,
                         lineHeight: 24,
                         marginBottom: 20
                     }}>
@@ -77,7 +88,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_600SemiBold',
                         fontSize: 18,
-                        color: '#111827',
+                        color: darkColors.textPrimary,
                         marginBottom: 12,
                         marginTop: 20
                     }}>
@@ -86,7 +97,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_400Regular',
                         fontSize: 14,
-                        color: '#6B7280',
+                        color: darkColors.textTertiary,
                         lineHeight: 20,
                         marginBottom: 16
                     }}>
@@ -99,7 +110,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_600SemiBold',
                         fontSize: 18,
-                        color: '#111827',
+                        color: darkColors.textPrimary,
                         marginBottom: 12,
                         marginTop: 20
                     }}>
@@ -108,7 +119,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_400Regular',
                         fontSize: 14,
-                        color: '#6B7280',
+                        color: darkColors.textTertiary,
                         lineHeight: 20,
                         marginBottom: 16
                     }}>
@@ -121,7 +132,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_600SemiBold',
                         fontSize: 18,
-                        color: '#111827',
+                        color: darkColors.textPrimary,
                         marginBottom: 12,
                         marginTop: 20
                     }}>
@@ -130,7 +141,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_400Regular',
                         fontSize: 14,
-                        color: '#6B7280',
+                        color: darkColors.textTertiary,
                         lineHeight: 20,
                         marginBottom: 16
                     }}>
@@ -140,7 +151,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_600SemiBold',
                         fontSize: 18,
-                        color: '#111827',
+                        color: darkColors.textPrimary,
                         marginBottom: 12,
                         marginTop: 20
                     }}>
@@ -149,7 +160,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_400Regular',
                         fontSize: 14,
-                        color: '#6B7280',
+                        color: darkColors.textTertiary,
                         lineHeight: 20,
                         marginBottom: 16
                     }}>
@@ -159,7 +170,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_600SemiBold',
                         fontSize: 18,
-                        color: '#111827',
+                        color: darkColors.textPrimary,
                         marginBottom: 12,
                         marginTop: 20
                     }}>
@@ -168,7 +179,7 @@ export default function Privacy() {
                     <Text style={{
                         fontFamily: 'Poppins_400Regular',
                         fontSize: 14,
-                        color: '#6B7280',
+                        color: darkColors.textTertiary,
                         lineHeight: 20,
                         marginBottom: 20
                     }}>
@@ -176,6 +187,6 @@ export default function Privacy() {
                     </Text>
                 </View>
             </ScrollView>
-        </View>
+        </LinearGradient>
     );
 }
