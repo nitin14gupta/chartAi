@@ -25,7 +25,7 @@ export default function Settings() {
             style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingVertical: 18,
+                paddingVertical: 10,
                 paddingHorizontal: 20,
                 backgroundColor: darkColors.surface,
                 borderRadius: 16,
@@ -73,7 +73,6 @@ export default function Settings() {
                 {/* Header */}
                 <View style={{
                     paddingHorizontal: 24,
-                    paddingBottom: 20,
                     flexDirection: 'row',
                     alignItems: 'center',
                     borderBottomWidth: 1,
@@ -100,7 +99,7 @@ export default function Settings() {
                     <View style={{ flex: 1 }}>
                         <Text style={{
                             fontFamily: 'Poppins_700Bold',
-                            fontSize: 28,
+                            fontSize: 24,
                             color: darkColors.textPrimary,
                         }}>
                             Settings
@@ -108,7 +107,8 @@ export default function Settings() {
                         <Text style={{
                             fontFamily: 'Poppins_400Regular',
                             fontSize: 12,
-                            color: darkColors.textSecondary
+                            color: darkColors.textSecondary,
+                            marginBottom: 8
                         }}>
                             Manage your account and preferences
                         </Text>
@@ -122,7 +122,7 @@ export default function Settings() {
                             fontFamily: 'Poppins_700Bold',
                             fontSize: 18,
                             color: darkColors.textPrimary,
-                            marginBottom: 16
+                            marginBottom: 12
                         }}>
                             Account
                         </Text>
@@ -145,7 +145,7 @@ export default function Settings() {
                             fontFamily: 'Poppins_700Bold',
                             fontSize: 18,
                             color: darkColors.textPrimary,
-                            marginBottom: 16
+                            marginBottom: 12
                         }}>
                             Support & Legal
                         </Text>

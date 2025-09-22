@@ -131,17 +131,15 @@ export default function Chat() {
                     <View style={{ flex: 1 }}>
                         {/* Header */}
                         <View style={{
-                            paddingTop: 20,
+                            paddingTop: 16,
                             paddingHorizontal: 24,
-                            paddingBottom: 20,
                             borderBottomWidth: 1,
                             borderBottomColor: darkColors.border
                         }}>
                             <Text style={{
                                 fontFamily: 'Poppins_700Bold',
-                                fontSize: 28,
+                                fontSize: 24,
                                 color: darkColors.textPrimary,
-                                marginBottom: 8
                             }}>
                                 Trading Bot
                             </Text>

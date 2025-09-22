@@ -114,14 +114,16 @@ export default function Index() {
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 32 }}>
+          <View style={{
+            paddingTop: 16,
+            paddingHorizontal: 24,
+          }}>
             {/* Header */}
-            <View style={{ marginBottom: 32 }}>
+            <View style={{ marginBottom: 24 }}>
               <Text style={{
                 fontFamily: 'Poppins_700Bold',
-                fontSize: 32,
+                fontSize: 24,
                 color: darkColors.textPrimary,
-                marginBottom: 8
               }}>
                 Upload Chart Analysis
               </Text>
