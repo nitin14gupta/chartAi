@@ -11,3 +11,7 @@ python-multipart
 razorpay
 requests
 apscheduler
+ultralytics
+opencv-python-headless
+pillow
+numpy
