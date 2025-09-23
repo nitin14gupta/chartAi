@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, ScrollView, Pressable, StatusBar, Alert } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
+import { View, Text, ScrollView, Pressable, StatusBar, Alert, Image, ActivityIndicator } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { darkColors } from '../../components/ui'
@@ -21,6 +21,10 @@ export default function Index() {
   const { user } = useAuth()
   const [historyItems, setHistoryItems] = useState<any[]>([])
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [navigating, setNavigating] = useState(false)
+  const [openingId, setOpeningId] = useState<string | number | null>(null)
+
+  const loadedHistoryRef = useRef(false)
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -56,6 +60,7 @@ export default function Index() {
   useEffect(() => {
     const loadHistory = async () => {
       if (!user) return
+      if (loadedHistoryRef.current) return
       try {
         setIsLoadingHistory(true)
         const res = await apiService.getAnalysisHistory(3, 0)
@@ -68,6 +73,7 @@ export default function Index() {
         setHistoryItems([])
       } finally {
         setIsLoadingHistory(false)
+        loadedHistoryRef.current = true
       }
     }
     loadHistory()
@@ -303,27 +309,47 @@ export default function Index() {
                 <View style={{
                   backgroundColor: darkColors.surface,
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 8,
                   borderWidth: 1,
                   borderColor: darkColors.border,
                 }}>
                   {isLoadingHistory ? (
-                    <Text style={{ color: darkColors.textSecondary }}>Loading...</Text>
+                    <View style={{ padding: 16, alignItems: 'center', justifyContent: 'center' }}>
+                      <ActivityIndicator color={darkColors.primary} />
+                      <Text style={{ marginTop: 8, color: darkColors.textSecondary }}>Loading history…</Text>
+                    </View>
                   ) : historyItems.length === 0 ? (
                     <Text style={{ color: darkColors.textSecondary }}>No history yet.</Text>
                   ) : (
-                    historyItems.map((item, idx) => (
-                      <Pressable
-                        key={item.id || idx}
-                        onPress={() => router.push({ pathname: '/(features)/chart/results', params: { data: JSON.stringify({ summary: item.summary, patterns_detected: item.patterns_detected, annotated_image: item.annotated_image, insights: item.insights }) } })}
-                        style={{ marginBottom: idx < historyItems.length - 1 ? 12 : 0 }}
-                      >
-                        <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_500Medium' }}>{item.summary || 'Analysis'}</Text>
-                        <Text style={{ color: darkColors.textSecondary, fontSize: 12 }}>
-                          {(item.created_at || '').replace('T', ' ').replace('Z', '')}
-                        </Text>
-                      </Pressable>
-                    ))
+                    historyItems.map((item, idx) => {
+                      const count = Array.isArray(item?.patterns_detected) ? item.patterns_detected.length : 0
+                      const firstPattern = count > 0 ? (item.patterns_detected[0]?.pattern || 'Pattern') : null
+                      const title = firstPattern ? firstPattern : `${count} pattern(s) detected.`
+                      return (
+                        <Pressable
+                          key={item.id || idx}
+                          onPress={() => {
+                            if (navigating) return
+                            setNavigating(true)
+                            setOpeningId(item.id || idx)
+                            router.push({ pathname: '/(features)/chart/results', params: { data: JSON.stringify({ summary: item.summary, patterns_detected: item.patterns_detected, annotated_image: item.annotated_image, insights: item.insights }) } })
+                            setTimeout(() => { setNavigating(false); setOpeningId(null) }, 800)
+                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: darkColors.border, backgroundColor: 'rgba(255,255,255,0.02)', marginBottom: idx < historyItems.length - 1 ? 8 : 0 }}
+                        >
+                          <Image source={{ uri: item.annotated_image }} style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: '#111' }} />
+                          <View style={{ flex: 1, marginLeft: 10 }}>
+                            <Text numberOfLines={1} style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_500Medium' }}>{title}</Text>
+                            <Text numberOfLines={1} style={{ color: darkColors.textSecondary, fontSize: 12 }}>{(item.created_at || '').replace('T', ' ').replace('Z', '')}</Text>
+                          </View>
+                          {openingId === (item.id || idx) ? (
+                            <ActivityIndicator size="small" color={darkColors.primary} />
+                          ) : (
+                            <Ionicons name="chevron-forward-outline" size={18} color={darkColors.textSecondary} />
+                          )}
+                        </Pressable>
+                      )
+                    })
                   )}
                 </View>
 

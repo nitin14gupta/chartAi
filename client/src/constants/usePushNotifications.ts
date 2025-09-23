@@ -62,7 +62,18 @@ export const usePushNotifications = (): PushNotificationState => {
                 return;
             }
 
-            token = await Notifications.getExpoPushTokenAsync();
+            try {
+                const projectId = (Constants?.expoConfig as any)?.extra?.eas?.projectId || (Constants as any)?.projectId;
+                if (!projectId) {
+                    // In dev or bare without configured projectId: skip token fetch to avoid runtime error
+                    console.log('Expo projectId not found; skipping getExpoPushTokenAsync in this environment.');
+                    return undefined as any;
+                }
+                token = await Notifications.getExpoPushTokenAsync({ projectId });
+            } catch (e) {
+                console.log('getExpoPushTokenAsync error:', e);
+                return undefined as any;
+            }
         } else {
             alert("Must be using a physical device for Push notifications");
         }
