@@ -272,12 +272,14 @@ class ApiService {
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
         try {
+            const token = await this.getAuthToken();
             const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.ANALYSIS.ANALYZE_CHART}`, {
                 method: 'POST',
                 body: form as any,
                 headers: {
                     // Let RN set the proper multipart boundary
                     Accept: 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 } as any,
                 signal: controller.signal,
             });
@@ -292,6 +294,14 @@ class ApiService {
             clearTimeout(timeoutId);
             return { success: false, error: error?.message || 'Network error' };
         }
+    }
+
+    async getAnalysisHistory(limit: number, offset: number = 0): Promise<ApiResponse<{ items: any[]; has_more: boolean; offset: number; limit: number }>> {
+        const token = await this.getAuthToken();
+        const params = new URLSearchParams({ limit: String(limit), offset: String(offset) }).toString();
+        return this.makeRequest<{ items: any[]; has_more: boolean; offset: number; limit: number }>(`${API_CONFIG.ENDPOINTS.ANALYSIS.HISTORY}?${params}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
     }
 }
 

@@ -88,6 +88,28 @@ ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP WITH TIME ZONE;
                 );
                 """)
                 return
+            # Analysis history table
+            try:
+                self.supabase.table('analysis_history').select('id').limit(1).execute()
+                print("✅ Analysis history table already exists")
+            except Exception:
+                print("❌ Analysis history table doesn't exist - please create it manually in Supabase dashboard")
+                print(
+                    """
+CREATE TABLE analysis_history (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    summary TEXT,
+    patterns_detected JSONB,
+    insights JSONB,
+    annotated_image TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analysis_history_user_created ON analysis_history(user_id, created_at DESC);
+                    """
+                )
+                return
             # Push tokens table
             try:
                 self.supabase.table('push_tokens').select('id').limit(1).execute()

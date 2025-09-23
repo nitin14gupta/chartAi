@@ -11,6 +11,7 @@ import { preloadBundledAssetsIfNeeded } from '../../constants/preloadAssets'
 import { useAuth } from '../../context/AuthContext'
 import * as Notifications from 'expo-notifications'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import apiService from '../../api/apiService'
 
 export default function Index() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -18,6 +19,8 @@ export default function Index() {
   const [isPreloading, setIsPreloading] = useState(true)
   const { expoPushToken } = usePushNotifications()
   const { user } = useAuth()
+  const [historyItems, setHistoryItems] = useState<any[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -49,6 +52,26 @@ export default function Index() {
 
     initializeApp()
   }, [])
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!user) return
+      try {
+        setIsLoadingHistory(true)
+        const res = await apiService.getAnalysisHistory(3, 0)
+        if (res.success && res.data?.items) {
+          setHistoryItems(res.data.items)
+        } else {
+          setHistoryItems([])
+        }
+      } catch (e) {
+        setHistoryItems([])
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+    loadHistory()
+  }, [user])
 
   const requestNotificationPermission = async () => {
     try {
@@ -265,28 +288,53 @@ export default function Index() {
               />
             </View>
 
-            {/* Selected Image Preview CTA */}
-            {selectedImage && (
+            {/* History Preview */}
+            {user && (
               <View style={{ marginBottom: 32 }}>
-                <Pressable
-                  onPress={analyzeChart}
-                  style={{
-                    backgroundColor: darkColors.primary,
-                    borderRadius: 12,
-                    paddingVertical: 16,
-                    paddingHorizontal: 32,
-                    width: '100%',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{
-                    fontFamily: 'Poppins_600SemiBold',
-                    fontSize: 16,
-                    color: darkColors.textPrimary
-                  }}>
-                    Preview & Confirm
-                  </Text>
-                </Pressable>
+                <Text style={{
+                  fontFamily: 'Poppins_600SemiBold',
+                  fontSize: 20,
+                  color: darkColors.textPrimary,
+                  marginBottom: 12
+                }}>
+                  Recent History
+                </Text>
+
+                <View style={{
+                  backgroundColor: darkColors.surface,
+                  borderRadius: 16,
+                  padding: 16,
+                  borderWidth: 1,
+                  borderColor: darkColors.border,
+                }}>
+                  {isLoadingHistory ? (
+                    <Text style={{ color: darkColors.textSecondary }}>Loading...</Text>
+                  ) : historyItems.length === 0 ? (
+                    <Text style={{ color: darkColors.textSecondary }}>No history yet.</Text>
+                  ) : (
+                    historyItems.map((item, idx) => (
+                      <Pressable
+                        key={item.id || idx}
+                        onPress={() => router.push({ pathname: '/(features)/chart/results', params: { data: JSON.stringify({ summary: item.summary, patterns_detected: item.patterns_detected, annotated_image: item.annotated_image, insights: item.insights }) } })}
+                        style={{ marginBottom: idx < historyItems.length - 1 ? 12 : 0 }}
+                      >
+                        <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_500Medium' }}>{item.summary || 'Analysis'}</Text>
+                        <Text style={{ color: darkColors.textSecondary, fontSize: 12 }}>
+                          {(item.created_at || '').replace('T', ' ').replace('Z', '')}
+                        </Text>
+                      </Pressable>
+                    ))
+                  )}
+                </View>
+
+                {historyItems.length >= 3 && (
+                  <Pressable
+                    onPress={() => router.push('/(features)/chart')}
+                    style={{ marginTop: 12, alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: darkColors.border }}
+                  >
+                    <Text style={{ color: darkColors.textPrimary, fontFamily: 'Poppins_500Medium' }}>See more</Text>
+                  </Pressable>
+                )}
               </View>
             )}
 
@@ -351,6 +399,8 @@ export default function Index() {
                 ))}
               </View>
             </View>
+
+
           </View>
         </ScrollView>
       </LinearGradient>
