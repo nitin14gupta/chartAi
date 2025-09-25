@@ -42,9 +42,9 @@ class ApiService {
         try {
             const token = await this.getAuthToken();
 
-            const headers = {
-                ...API_CONFIG.DEFAULT_HEADERS,
-                ...options.headers,
+            const headers: Record<string, string> = {
+                ...(API_CONFIG.DEFAULT_HEADERS as any),
+                ...(options.headers as any),
             };
 
             if (token) {
@@ -305,10 +305,16 @@ class ApiService {
     }
 
     // Chat
-    async askBot(message: string, context?: any, sessionId?: string): Promise<ApiResponse<{ text: string; title?: string; session_id?: string }>> {
+    async askBot(message: string, context?: any, sessionId?: string, opts?: { historyMode?: 'recent' | 'full'; historyLimit?: number }): Promise<ApiResponse<{ text: string; title?: string; session_id?: string }>> {
         return this.makeRequest<{ text: string; title?: string; session_id?: string }>(API_CONFIG.ENDPOINTS.CHAT.ASK, {
             method: 'POST',
-            body: JSON.stringify({ message, context, session_id: sessionId }),
+            body: JSON.stringify({
+                message,
+                context,
+                session_id: sessionId,
+                history_mode: opts?.historyMode,
+                history_limit: opts?.historyLimit,
+            }),
         });
     }
 
@@ -337,6 +343,7 @@ class ApiService {
         sessionId: string | undefined,
         onMeta: (meta: { session_id?: string; title?: string }) => void,
         onChunk: (text: string) => void,
+        opts?: { historyMode?: 'recent' | 'full'; historyLimit?: number },
     ): Promise<{ success: boolean; error?: string }> {
         try {
             const token = await this.getAuthToken();
@@ -370,7 +377,13 @@ class ApiService {
                     }
                 };
                 xhr.onerror = () => resolve({ success: false, error: 'Network error' });
-                xhr.send(JSON.stringify({ message, context, session_id: sessionId }));
+                xhr.send(JSON.stringify({
+                    message,
+                    context,
+                    session_id: sessionId,
+                    history_mode: opts?.historyMode,
+                    history_limit: opts?.historyLimit,
+                }));
             });
         } catch (e: any) {
             return { success: false, error: e?.message || 'Stream failed' };

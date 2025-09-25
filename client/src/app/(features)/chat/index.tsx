@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, ScrollView, Pressable, StatusBar, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
@@ -40,6 +40,7 @@ export default function Chat() {
     const [activeSessionId, setActiveSessionId] = useState<string | undefined>(undefined)
     const [recent, setRecent] = useState<Message[]>([])
     const [loadingHistory, setLoadingHistory] = useState(false)
+    const [useFullHistory, setUseFullHistory] = useState(false)
 
     const getWelcomeMessage = (): Message => ({
         id: 'welcome',
@@ -87,6 +88,8 @@ export default function Chat() {
         load()
     }, [isAuthenticated, activeSessionId])
 
+    const scrollRef = useRef<ScrollView | null>(null)
+
     const sendMessage = async () => {
         if (!inputText.trim()) return
 
@@ -114,9 +117,19 @@ export default function Chat() {
 
         const chunkHandler = (chunk: string) => {
             setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: (m.text || '') + chunk } : m))
+            requestAnimationFrame(() => {
+                try { scrollRef.current?.scrollToEnd({ animated: true }) } catch { }
+            })
         }
 
-        const res = await apiService.askBotStream(userMessage.text, { market: 'IN', source: 'mobile-app' }, activeSessionId, metaHandler, chunkHandler)
+        const res = await apiService.askBotStream(
+            userMessage.text,
+            { market: 'IN', source: 'mobile-app' },
+            activeSessionId,
+            metaHandler,
+            chunkHandler,
+            { historyMode: useFullHistory ? 'full' : 'recent', historyLimit: useFullHistory ? 60 : 12 }
+        )
         if (!res.success) {
             // Replace assistant message with error if streaming failed and nothing came
             setMessages(prev => prev.map(m => m.id === assistantId && (!m.text || m.text.length === 0)
@@ -278,9 +291,11 @@ export default function Chat() {
 
                         {/* Messages */}
                         <ScrollView
+                            ref={(r) => { scrollRef.current = r }}
                             style={{ flex: 1, paddingHorizontal: 24 }}
                             showsVerticalScrollIndicator={false}
                             contentContainerStyle={{ paddingVertical: 20, paddingBottom: 24 }}
+                            onContentSizeChange={() => { try { scrollRef.current?.scrollToEnd({ animated: true }) } catch { } }}
                         >
                             {messages.map((message: Message) => (
                                 <MessageBubble key={message.id} message={message} />
@@ -344,7 +359,7 @@ export default function Chat() {
                                 alignItems: 'center',
                                 backgroundColor: darkColors.surface,
                                 borderRadius: 24,
-                                marginBottom: 1,
+                                marginBottom: 6,
                                 paddingHorizontal: 16,
                                 paddingVertical: 8,
                                 borderWidth: 1,
@@ -384,6 +399,19 @@ export default function Chat() {
                                         color={inputText.trim() && !isTyping ? darkColors.textPrimary : darkColors.textTertiary}
                                     />
                                 </Pressable>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Pressable onPress={() => setUseFullHistory(v => !v)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Ionicons name={useFullHistory ? 'checkbox' : 'square-outline'} size={18} color={darkColors.textSecondary} />
+                                    <Text style={{ marginLeft: 8, color: darkColors.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12 }}>
+                                        Use full session history
+                                    </Text>
+                                </Pressable>
+                                {activeSessionId && (
+                                    <Text style={{ color: darkColors.textTertiary, fontFamily: 'Poppins_400Regular', fontSize: 12 }}>
+                                        Session: {activeSessionId.slice(0, 8)}…
+                                    </Text>
+                                )}
                             </View>
                         </View>
                     </View>

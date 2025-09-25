@@ -97,7 +97,18 @@ def ask_bot():
                 user_id = payload.get('user_id')
 
         # Build recent history for memory if session provided and user is known
-        session_id = (request.get_json(silent=True) or {}).get('session_id')
+        body_json = (request.get_json(silent=True) or {})
+        session_id = body_json.get('session_id')
+        history_mode = body_json.get('history_mode') or 'recent'  # 'recent' | 'full'
+        history_limit = body_json.get('history_limit')
+        # Safe caps
+        try:
+            history_limit = int(history_limit) if history_limit is not None else None
+        except Exception:
+            history_limit = None
+        if history_limit is None:
+            history_limit = 12 if history_mode == 'recent' else 50
+        history_limit = max(1, min(200, history_limit))
         history = None
         if user_id and session_id:
             try:
@@ -109,7 +120,7 @@ def ask_bot():
                     .eq('user_id', user_id)
                     .eq('session_id', session_id)
                     .order('created_at', desc=False)
-                    .range(0, 99)
+                    .range(0, history_limit - 1)
                     .execute()
                 )
                 history = res_hist.data or None
@@ -258,7 +269,17 @@ def ask_bot_stream():
                 user_id = payload.get('user_id')
 
         # Prepare recent history if available for better context
-        session_id = (request.get_json(silent=True) or {}).get('session_id')
+        body_json = (request.get_json(silent=True) or {})
+        session_id = body_json.get('session_id')
+        history_mode = body_json.get('history_mode') or 'recent'
+        history_limit = body_json.get('history_limit')
+        try:
+            history_limit = int(history_limit) if history_limit is not None else None
+        except Exception:
+            history_limit = None
+        if history_limit is None:
+            history_limit = 12 if history_mode == 'recent' else 50
+        history_limit = max(1, min(200, history_limit))
         history = None
         if user_id and session_id:
             try:
@@ -269,7 +290,7 @@ def ask_bot_stream():
                     .eq('user_id', user_id)
                     .eq('session_id', session_id)
                     .order('created_at', desc=False)
-                    .range(0, 99)
+                    .range(0, history_limit - 1)
                     .execute()
                 )
                 history = res_hist.data or None
