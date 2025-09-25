@@ -96,8 +96,28 @@ def ask_bot():
             if payload:
                 user_id = payload.get('user_id')
 
-        # Call Gemini
-        result = chat_service.ask(message=message, context=context)
+        # Build recent history for memory if session provided and user is known
+        session_id = (request.get_json(silent=True) or {}).get('session_id')
+        history = None
+        if user_id and session_id:
+            try:
+                # Fetch last 20 messages for this session in chronological order
+                res_hist = (
+                    db_config.supabase
+                    .table('chat_messages')
+                    .select('role,message,created_at')
+                    .eq('user_id', user_id)
+                    .eq('session_id', session_id)
+                    .order('created_at', desc=False)
+                    .range(0, 99)
+                    .execute()
+                )
+                history = res_hist.data or None
+            except Exception:
+                history = None
+
+        # Call Gemini with bounded history
+        result = chat_service.ask(message=message, context=context, history=history)
         if 'error' in result:
             return jsonify({ 'error': result['error'] }), 502
 
@@ -237,8 +257,27 @@ def ask_bot_stream():
             if payload:
                 user_id = payload.get('user_id')
 
+        # Prepare recent history if available for better context
+        session_id = (request.get_json(silent=True) or {}).get('session_id')
+        history = None
+        if user_id and session_id:
+            try:
+                res_hist = (
+                    db_config.supabase
+                    .table('chat_messages')
+                    .select('role,message,created_at')
+                    .eq('user_id', user_id)
+                    .eq('session_id', session_id)
+                    .order('created_at', desc=False)
+                    .range(0, 99)
+                    .execute()
+                )
+                history = res_hist.data or None
+            except Exception:
+                history = None
+
         # Call Gemini (non-stream), then stream the text progressively to the client
-        result = chat_service.ask(message=message, context=context)
+        result = chat_service.ask(message=message, context=context, history=history)
         if 'error' in result:
             return jsonify({ 'error': result['error'] }), 502
 

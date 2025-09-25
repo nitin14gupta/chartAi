@@ -100,7 +100,26 @@ class ChatService:
         self.model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
         self.enabled = bool(self.api_key)
 
-    def ask(self, message: str, context: dict | None = None) -> dict:
+    def _format_history_as_text(self, history: list[dict] | None, max_messages: int = 12) -> str:
+        """Format prior messages into a compact transcript.
+
+        history should be chronological [{'role': 'user'|'assistant', 'message': str}].
+        Only last max_messages are kept.
+        """
+        if not history:
+            return ""
+        trimmed = history[-max_messages:]
+        lines: list[str] = []
+        for m in trimmed:
+            role = m.get('role', 'user')
+            text = str(m.get('message', '')).strip()
+            if not text:
+                continue
+            prefix = 'User' if role == 'user' else 'Assistant'
+            lines.append(f"{prefix}: {text}")
+        return "\n".join(lines)
+
+    def ask(self, message: str, context: dict | None = None, history: list[dict] | None = None) -> dict:
         """Send a chat-style prompt to Gemini and return text or error.
 
         Returns: { text: str } on success, or { error: str } on failure.
@@ -116,6 +135,10 @@ class ChatService:
             "Never provide financial, legal, or tax advice. Include risk disclaimers where relevant."
         )
 
+        # Include compact conversation memory
+        history_text_block = self._format_history_as_text(history, max_messages=12)
+        history_text = ("\nRecent conversation (most recent last):\n" + history_text_block) if history_text_block else ""
+
         # Merge context into the prompt as structured text if provided
         context_text = ""
         if context:
@@ -124,7 +147,7 @@ class ChatService:
             except Exception:
                 context_text = f"\nContext: {context}"
 
-        user_prompt = f"User message: {message}{context_text}"
+        user_prompt = f"User message: {message}{context_text}{history_text}"
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
         headers = {
@@ -153,7 +176,6 @@ class ChatService:
                 .get('text', '')
             )
             full_text = text.strip()
-            # Try derive a title: use first bold **...** segment or first line up to 80 chars
             title: str | None = None
             if '**' in full_text:
                 try:

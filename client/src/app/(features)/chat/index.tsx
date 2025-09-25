@@ -344,6 +344,7 @@ export default function Chat() {
                                 alignItems: 'center',
                                 backgroundColor: darkColors.surface,
                                 borderRadius: 24,
+                                marginBottom: 1,
                                 paddingHorizontal: 16,
                                 paddingVertical: 8,
                                 borderWidth: 1,
