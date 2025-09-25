@@ -6,6 +6,7 @@ import { darkColors } from '../../../components/ui'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import apiService from '../../../api/apiService'
 import { useAuth } from '../../../context/AuthContext'
+import { useRouter } from 'expo-router'
 
 interface Message {
     id: string
@@ -31,6 +32,7 @@ function renderBold(text: string) {
 }
 
 export default function Chat() {
+    const router = useRouter()
     const { isAuthenticated } = useAuth()
     const [messages, setMessages] = useState<Message[]>([])
     const [inputText, setInputText] = useState('')
@@ -41,6 +43,7 @@ export default function Chat() {
     const [recent, setRecent] = useState<Message[]>([])
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [useFullHistory, setUseFullHistory] = useState(false)
+    const [webSearchEnabled, setWebSearchEnabled] = useState(false)
 
     const getWelcomeMessage = (): Message => ({
         id: 'welcome',
@@ -109,10 +112,11 @@ export default function Chat() {
         // Seed empty assistant message to fill progressively
         setMessages(prev => [...prev, { id: assistantId, text: '', isUser: false, timestamp: new Date() }])
 
-        const metaHandler = (meta: { session_id?: string; title?: string }) => {
+        const metaHandler = (meta: { session_id?: string; title?: string; links?: Array<{ title: string; link: string; snippet?: string }> }) => {
             if (!activeSessionId && meta.session_id) {
                 setActiveSessionId(meta.session_id)
             }
+            // Optionally, we could display links UI using meta.links later
         }
 
         const chunkHandler = (chunk: string) => {
@@ -128,7 +132,7 @@ export default function Chat() {
             activeSessionId,
             metaHandler,
             chunkHandler,
-            { historyMode: useFullHistory ? 'full' : 'recent', historyLimit: useFullHistory ? 60 : 12 }
+            { historyMode: useFullHistory ? 'full' : 'recent', historyLimit: useFullHistory ? 60 : 12, historyScope: useFullHistory ? 'user' : 'session', webSearch: webSearchEnabled }
         )
         if (!res.success) {
             // Replace assistant message with error if streaming failed and nothing came
@@ -145,64 +149,6 @@ export default function Chat() {
         'What\'s the current market sentiment?',
         'Explain RSI and MACD indicators'
     ]
-
-    const MessageBubble = ({ message }: { message: Message }) => (
-        <View style={{
-            marginBottom: 16,
-            alignItems: message.isUser ? 'flex-end' : 'flex-start'
-        }}>
-            <View style={{
-                backgroundColor: message.isUser ? darkColors.primary : darkColors.surface,
-                borderRadius: 20,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                maxWidth: '80%',
-                borderWidth: 1,
-                borderColor: message.isUser ? darkColors.primary : darkColors.border,
-            }}>
-                <Text style={{
-                    fontFamily: 'Poppins_400Regular',
-                    fontSize: 16,
-                    color: darkColors.textPrimary,
-                    lineHeight: 22
-                }}>
-                    {renderBold(message.text)}
-                </Text>
-            </View>
-            <Text style={{
-                fontFamily: 'Poppins_400Regular',
-                fontSize: 12,
-                color: darkColors.textTertiary,
-                marginTop: 4
-            }}>
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-        </View>
-    )
-
-    const QuickQuestionButton = ({ question }: { question: string }) => (
-        <Pressable
-            onPress={() => setInputText(question)}
-            style={{
-                backgroundColor: darkColors.surface,
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                marginRight: 8,
-                marginBottom: 8,
-                borderWidth: 1,
-                borderColor: darkColors.border,
-            }}
-        >
-            <Text style={{
-                fontFamily: 'Poppins_400Regular',
-                fontSize: 14,
-                color: darkColors.textSecondary
-            }}>
-                {question}
-            </Text>
-        </Pressable>
-    )
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['bottom']}>
@@ -267,29 +213,10 @@ export default function Chat() {
                                         <Text numberOfLines={1} style={{ fontFamily: 'Poppins_400Regular', color: s.id === activeSessionId ? darkColors.textPrimary : darkColors.textSecondary }}>{s.title || 'Untitled chat'}</Text>
                                     </Pressable>
                                 ))}
-                                {/* <View style={{ height: 1, backgroundColor: darkColors.border, marginVertical: 12 }} /> */}
-                                {/* <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: darkColors.textPrimary, marginBottom: 8 }}>Recent</Text> */}
-                                {/* {loadingHistory && (
-                                    <Text style={{ fontFamily: 'Poppins_400Regular', color: darkColors.textSecondary }}>Loading...</Text>
-                                )} */}
-                                {/* {!loadingHistory && recent.length === 0 && (
-                                    <Text style={{ fontFamily: 'Poppins_400Regular', color: darkColors.textSecondary }}>No messages.</Text>
-                                )} */}
-                                {/* {!loadingHistory && recent.length > 0 && (
-                                    <View>
-                                        {recent.slice(-20).reverse().map((m, idx) => (
-                                            <Pressable key={m.id || String(idx)} onPress={() => { setInputText(m.text); setIsDrawerOpen(false); }} style={{ paddingVertical: 8 }}>
-                                                <Text numberOfLines={2} style={{ fontFamily: 'Poppins_400Regular', color: m.isUser ? darkColors.textPrimary : darkColors.textSecondary }}>
-                                                    {m.isUser ? 'You: ' : 'Bot: '}{m.text}
-                                                </Text>
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                )} */}
                             </ScrollView>
                         </View>
 
-                        {/* Messages */}
+                        {/* Messages - flat layout */}
                         <ScrollView
                             ref={(r) => { scrollRef.current = r }}
                             style={{ flex: 1, paddingHorizontal: 24 }}
@@ -298,31 +225,28 @@ export default function Chat() {
                             onContentSizeChange={() => { try { scrollRef.current?.scrollToEnd({ animated: true }) } catch { } }}
                         >
                             {messages.map((message: Message) => (
-                                <MessageBubble key={message.id} message={message} />
+                                <View key={message.id} style={{ marginBottom: 16 }}>
+                                    <Text style={{
+                                        fontFamily: message.isUser ? 'Poppins_600SemiBold' : 'Poppins_400Regular',
+                                        fontSize: 16,
+                                        color: darkColors.textPrimary,
+                                        lineHeight: 22
+                                    }}>
+                                        {message.isUser ? `You: ${message.text}` : renderBold(message.text)}
+                                    </Text>
+                                </View>
                             ))}
 
                             {isTyping && (
-                                <View style={{
-                                    marginBottom: 16,
-                                    alignItems: 'flex-start'
-                                }}>
-                                    <View style={{
-                                        backgroundColor: darkColors.surface,
-                                        borderRadius: 20,
-                                        paddingHorizontal: 16,
-                                        paddingVertical: 12,
-                                        borderWidth: 1,
-                                        borderColor: darkColors.border,
+                                <View style={{ marginBottom: 16 }}>
+                                    <Text style={{
+                                        fontFamily: 'Poppins_400Regular',
+                                        fontSize: 16,
+                                        color: darkColors.textSecondary,
+                                        fontStyle: 'italic'
                                     }}>
-                                        <Text style={{
-                                            fontFamily: 'Poppins_400Regular',
-                                            fontSize: 16,
-                                            color: darkColors.textSecondary,
-                                            fontStyle: 'italic'
-                                        }}>
-                                            AI is typing...
-                                        </Text>
-                                    </View>
+                                        AI is typing...
+                                    </Text>
                                 </View>
                             )}
 
@@ -339,7 +263,28 @@ export default function Chat() {
                                     </Text>
                                     <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                                         {quickQuestions.map((question, index) => (
-                                            <QuickQuestionButton key={index} question={question} />
+                                            <Pressable
+                                                key={index}
+                                                onPress={() => setInputText(question)}
+                                                style={{
+                                                    backgroundColor: darkColors.surface,
+                                                    borderRadius: 12,
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 12,
+                                                    marginRight: 8,
+                                                    marginBottom: 8,
+                                                    borderWidth: 1,
+                                                    borderColor: darkColors.border,
+                                                }}
+                                            >
+                                                <Text style={{
+                                                    fontFamily: 'Poppins_400Regular',
+                                                    fontSize: 14,
+                                                    color: darkColors.textSecondary
+                                                }}>
+                                                    {question}
+                                                </Text>
+                                            </Pressable>
                                         ))}
                                     </View>
                                 </View>
@@ -404,7 +349,13 @@ export default function Chat() {
                                 <Pressable onPress={() => setUseFullHistory(v => !v)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons name={useFullHistory ? 'checkbox' : 'square-outline'} size={18} color={darkColors.textSecondary} />
                                     <Text style={{ marginLeft: 8, color: darkColors.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12 }}>
-                                        Use full session history
+                                        Use full history (all sessions)
+                                    </Text>
+                                </Pressable>
+                                <Pressable onPress={() => setWebSearchEnabled(v => !v)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Ionicons name={webSearchEnabled ? 'globe' : 'globe-outline'} size={18} color={darkColors.textSecondary} />
+                                    <Text style={{ marginLeft: 8, color: darkColors.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12 }}>
+                                        Web search
                                     </Text>
                                 </Pressable>
                                 {activeSessionId && (

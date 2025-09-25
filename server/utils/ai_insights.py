@@ -2,6 +2,7 @@ import os
 from typing import Any, Dict, List
 import json
 import requests
+from urllib.parse import urlencode
 
 class AIInsightsService:
     def __init__(self) -> None:
@@ -99,6 +100,9 @@ class ChatService:
         self.api_key = os.getenv('GEMINI_API_KEY')
         self.model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
         self.enabled = bool(self.api_key)
+        # Optional Google Programmable Search Engine for web enrichment
+        self.cse_key = os.getenv('GOOGLE_CSE_KEY')
+        self.cse_id = os.getenv('GOOGLE_CSE_ID')
 
     def _format_history_as_text(self, history: list[dict] | None, max_messages: int = 12) -> str:
         """Format prior messages into a compact transcript.
@@ -119,7 +123,7 @@ class ChatService:
             lines.append(f"{prefix}: {text}")
         return "\n".join(lines)
 
-    def ask(self, message: str, context: dict | None = None, history: list[dict] | None = None) -> dict:
+    def ask(self, message: str, context: dict | None = None, history: list[dict] | None = None, web_search: bool = False) -> dict:
         """Send a chat-style prompt to Gemini and return text or error.
 
         Returns: { text: str } on success, or { error: str } on failure.
@@ -166,6 +170,31 @@ class ChatService:
         }
 
         try:
+            # Optional web search enrichment
+            links: list[dict] | None = None
+            if web_search and self.cse_key and self.cse_id:
+                try:
+                    q = message
+                    url = f"https://www.googleapis.com/customsearch/v1?{urlencode({'key': self.cse_key, 'cx': self.cse_id, 'q': q, 'num': 5})}"
+                    sresp = requests.get(url, timeout=8)
+                    sresp.raise_for_status()
+                    sjson = sresp.json()
+                    items = sjson.get('items', [])[:5]
+                    links = [
+                        {
+                            'title': it.get('title'),
+                            'link': it.get('link'),
+                            'snippet': it.get('snippet')
+                        }
+                        for it in items
+                        if it.get('link')
+                    ]
+                    if links:
+                        refs_txt = "\n\nTop web references:\n" + "\n".join([f"- {l['title']}: {l['link']}" for l in links])
+                        payload["contents"][0]["parts"].append({"text": refs_txt})
+                except Exception:
+                    links = None
+
             resp = requests.post(url, headers=headers, json=payload, timeout=20)
             resp.raise_for_status()
             data_json = resp.json()
@@ -187,7 +216,10 @@ class ChatService:
             if not title:
                 first_line = full_text.splitlines()[0] if full_text else ''
                 title = first_line[:80] if first_line else None
-            return { 'text': full_text, 'title': title }
+            result: dict = { 'text': full_text, 'title': title }
+            if links:
+                result['links'] = links
+            return result
         except requests.HTTPError as http_err:
             try:
                 err_body = resp.json()

@@ -305,8 +305,13 @@ class ApiService {
     }
 
     // Chat
-    async askBot(message: string, context?: any, sessionId?: string, opts?: { historyMode?: 'recent' | 'full'; historyLimit?: number }): Promise<ApiResponse<{ text: string; title?: string; session_id?: string }>> {
-        return this.makeRequest<{ text: string; title?: string; session_id?: string }>(API_CONFIG.ENDPOINTS.CHAT.ASK, {
+    async askBot(
+        message: string,
+        context?: any,
+        sessionId?: string,
+        opts?: { historyMode?: 'recent' | 'full'; historyLimit?: number; historyScope?: 'session' | 'user'; webSearch?: boolean }
+    ): Promise<ApiResponse<{ text: string; title?: string; session_id?: string; links?: Array<{ title: string; link: string; snippet?: string }> }>> {
+        return this.makeRequest<{ text: string; title?: string; session_id?: string; links?: Array<{ title: string; link: string; snippet?: string }> }>(API_CONFIG.ENDPOINTS.CHAT.ASK, {
             method: 'POST',
             body: JSON.stringify({
                 message,
@@ -314,6 +319,8 @@ class ApiService {
                 session_id: sessionId,
                 history_mode: opts?.historyMode,
                 history_limit: opts?.historyLimit,
+                history_scope: opts?.historyScope,
+                web_search: opts?.webSearch,
             }),
         });
     }
@@ -343,7 +350,7 @@ class ApiService {
         sessionId: string | undefined,
         onMeta: (meta: { session_id?: string; title?: string }) => void,
         onChunk: (text: string) => void,
-        opts?: { historyMode?: 'recent' | 'full'; historyLimit?: number },
+        opts?: { historyMode?: 'recent' | 'full'; historyLimit?: number; historyScope?: 'session' | 'user'; webSearch?: boolean },
     ): Promise<{ success: boolean; error?: string }> {
         try {
             const token = await this.getAuthToken();
@@ -383,6 +390,8 @@ class ApiService {
                     session_id: sessionId,
                     history_mode: opts?.historyMode,
                     history_limit: opts?.historyLimit,
+                    history_scope: opts?.historyScope,
+                    web_search: opts?.webSearch,
                 }));
             });
         } catch (e: any) {

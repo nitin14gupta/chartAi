@@ -101,6 +101,7 @@ def ask_bot():
         session_id = body_json.get('session_id')
         history_mode = body_json.get('history_mode') or 'recent'  # 'recent' | 'full'
         history_limit = body_json.get('history_limit')
+        history_scope = (body_json.get('history_scope') or 'session')  # 'session' | 'user'
         # Safe caps
         try:
             history_limit = int(history_limit) if history_limit is not None else None
@@ -110,25 +111,18 @@ def ask_bot():
             history_limit = 12 if history_mode == 'recent' else 50
         history_limit = max(1, min(200, history_limit))
         history = None
-        if user_id and session_id:
+        if user_id and (session_id or history_scope == 'user'):
             try:
-                # Fetch last 20 messages for this session in chronological order
-                res_hist = (
-                    db_config.supabase
-                    .table('chat_messages')
-                    .select('role,message,created_at')
-                    .eq('user_id', user_id)
-                    .eq('session_id', session_id)
-                    .order('created_at', desc=False)
-                    .range(0, history_limit - 1)
-                    .execute()
-                )
+                base = db_config.supabase.table('chat_messages').select('role,message,created_at').eq('user_id', user_id)
+                if history_scope == 'session' and session_id:
+                    base = base.eq('session_id', session_id)
+                res_hist = base.order('created_at', desc=False).range(0, history_limit - 1).execute()
                 history = res_hist.data or None
             except Exception:
                 history = None
 
-        # Call Gemini with bounded history
-        result = chat_service.ask(message=message, context=context, history=history)
+        # Call Gemini with bounded history and optional web search
+        result = chat_service.ask(message=message, context=context, history=history, web_search=bool(body_json.get('web_search')))
         if 'error' in result:
             return jsonify({ 'error': result['error'] }), 502
 
@@ -273,6 +267,7 @@ def ask_bot_stream():
         session_id = body_json.get('session_id')
         history_mode = body_json.get('history_mode') or 'recent'
         history_limit = body_json.get('history_limit')
+        history_scope = (body_json.get('history_scope') or 'session')
         try:
             history_limit = int(history_limit) if history_limit is not None else None
         except Exception:
@@ -281,29 +276,24 @@ def ask_bot_stream():
             history_limit = 12 if history_mode == 'recent' else 50
         history_limit = max(1, min(200, history_limit))
         history = None
-        if user_id and session_id:
+        if user_id and (session_id or history_scope == 'user'):
             try:
-                res_hist = (
-                    db_config.supabase
-                    .table('chat_messages')
-                    .select('role,message,created_at')
-                    .eq('user_id', user_id)
-                    .eq('session_id', session_id)
-                    .order('created_at', desc=False)
-                    .range(0, history_limit - 1)
-                    .execute()
-                )
+                base = db_config.supabase.table('chat_messages').select('role,message,created_at').eq('user_id', user_id)
+                if history_scope == 'session' and session_id:
+                    base = base.eq('session_id', session_id)
+                res_hist = base.order('created_at', desc=False).range(0, history_limit - 1).execute()
                 history = res_hist.data or None
             except Exception:
                 history = None
 
         # Call Gemini (non-stream), then stream the text progressively to the client
-        result = chat_service.ask(message=message, context=context, history=history)
+        result = chat_service.ask(message=message, context=context, history=history, web_search=bool(body_json.get('web_search')))
         if 'error' in result:
             return jsonify({ 'error': result['error'] }), 502
 
         answer_text = (result.get('text') or '')
         answer_title = result.get('title')
+        answer_links = result.get('links')
 
         # Persist and make sure we have a session
         session_id = data.get('session_id')
@@ -343,7 +333,7 @@ def ask_bot_stream():
 
         def generate():
             import json
-            meta = { 'session_id': session_id, 'title': answer_title }
+            meta = { 'session_id': session_id, 'title': answer_title, 'links': answer_links }
             yield f"META:{json.dumps(meta)}\n"
             # Stream in chunks by sentences or fixed sizes
             text = answer_text
