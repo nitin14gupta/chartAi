@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "21753048200",
-    "project_id": "zenflownotification",
-    "storage_bucket": "zenflownotification.firebasestorage.app"
+    "project_number": "595632124567",
+    "project_id": "chartai-b4618",
+    "storage_bucket": "chartai-b4618.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:21753048200:android:1cff3afc4832d8a1cbc33d",
+        "mobilesdk_app_id": "1:595632124567:android:41851d1d10a3ba62116fd2",
         "android_client_info": {
-          "package_name": "com.zenflow.app"
+          "package_name": "com.chartai.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDr9y_ckR6TF_54Sjh4ywKJIBdGjN-6d8g"
+          "current_key": "AIzaSyDiIFgB9Zl1pMkZuJXBHD4A8q21vsPWwNk"
         }
       ],
       "services": {

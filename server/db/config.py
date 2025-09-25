@@ -127,6 +127,51 @@ CREATE TABLE push_tokens (
                     """
                 )
                 return
+            # Chat messages table
+            try:
+                self.supabase.table('chat_messages').select('id').limit(1).execute()
+                print("✅ Chat messages table already exists")
+            except Exception:
+                print("❌ Chat messages table doesn't exist - please create it manually in Supabase dashboard")
+                print(
+                    """
+CREATE TABLE chat_messages (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    session_id UUID,
+    role TEXT CHECK (role IN ('user','assistant')) NOT NULL,
+    message TEXT NOT NULL,
+    context JSONB,
+    model TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_user_created ON chat_messages(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created ON chat_messages(session_id, created_at DESC);
+                    """
+                )
+                return
+
+            # Chat sessions table
+            try:
+                self.supabase.table('chat_sessions').select('id').limit(1).execute()
+                print("✅ Chat sessions table already exists")
+            except Exception:
+                print("❌ Chat sessions table doesn't exist - please create it manually in Supabase dashboard")
+                print(
+                    """
+CREATE TABLE chat_sessions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_updated ON chat_sessions(user_id, updated_at DESC);
+                    """
+                )
+                return
             
             print("✅ All database tables are ready")
             

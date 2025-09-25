@@ -303,6 +303,79 @@ class ApiService {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
     }
+
+    // Chat
+    async askBot(message: string, context?: any, sessionId?: string): Promise<ApiResponse<{ text: string; title?: string; session_id?: string }>> {
+        return this.makeRequest<{ text: string; title?: string; session_id?: string }>(API_CONFIG.ENDPOINTS.CHAT.ASK, {
+            method: 'POST',
+            body: JSON.stringify({ message, context, session_id: sessionId }),
+        });
+    }
+
+    async getChatHistory(limit: number = 30, offset: number = 0, sessionId?: string): Promise<ApiResponse<{ items: any[]; has_more: boolean; offset: number; limit: number }>> {
+        const token = await this.getAuthToken();
+        const qs: Record<string, string> = { limit: String(limit), offset: String(offset) } as any;
+        if (sessionId) qs.session_id = sessionId;
+        const params = new URLSearchParams(qs).toString();
+        return this.makeRequest<{ items: any[]; has_more: boolean; offset: number; limit: number }>(`${API_CONFIG.ENDPOINTS.CHAT.HISTORY}?${params}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+    }
+
+    async listSessions(limit: number = 50, offset: number = 0): Promise<ApiResponse<{ items: any[]; has_more: boolean; offset: number; limit: number }>> {
+        const token = await this.getAuthToken();
+        const params = new URLSearchParams({ limit: String(limit), offset: String(offset) }).toString();
+        return this.makeRequest<{ items: any[]; has_more: boolean; offset: number; limit: number }>(`${API_CONFIG.ENDPOINTS.CHAT.SESSIONS}?${params}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+    }
+
+    // Streaming ask - returns accumulated text and optional session_id via callbacks
+    async askBotStream(
+        message: string,
+        context: any,
+        sessionId: string | undefined,
+        onMeta: (meta: { session_id?: string; title?: string }) => void,
+        onChunk: (text: string) => void,
+    ): Promise<{ success: boolean; error?: string }> {
+        try {
+            const token = await this.getAuthToken();
+            return await new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `${this.baseURL}${API_CONFIG.ENDPOINTS.CHAT.STREAM}`);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                let lastIndex = 0;
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 3 || xhr.readyState === 4) {
+                        const text = xhr.responseText || '';
+                        const newText = text.slice(lastIndex);
+                        lastIndex = text.length;
+                        const lines = newText.split(/\n/);
+                        for (const line of lines) {
+                            if (!line) continue;
+                            if (line.startsWith('META:')) {
+                                try { onMeta(JSON.parse(line.slice(5))); } catch { }
+                            } else if (line.startsWith('DATA:')) {
+                                onChunk(line.slice(5));
+                            }
+                        }
+                    }
+                    if (xhr.readyState === 4) {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve({ success: true });
+                        } else {
+                            resolve({ success: false, error: `HTTP ${xhr.status}` });
+                        }
+                    }
+                };
+                xhr.onerror = () => resolve({ success: false, error: 'Network error' });
+                xhr.send(JSON.stringify({ message, context, session_id: sessionId }));
+            });
+        } catch (e: any) {
+            return { success: false, error: e?.message || 'Stream failed' };
+        }
+    }
 }
 
 // Export singleton instance

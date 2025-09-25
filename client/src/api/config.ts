@@ -40,6 +40,14 @@ export const API_CONFIG = {
             ANALYZE_CHART: '/api/analysis/analyze-chart',
             HISTORY: '/api/analysis/history',
         },
+
+        // Chat (using analysis blueprint for now)
+        CHAT: {
+            ASK: '/api/analysis/ask-bot',
+            HISTORY: '/api/analysis/chat-history',
+            SESSIONS: '/api/analysis/chat-history',
+            STREAM: '/api/analysis/ask-bot-stream',
+        },
     },
 
     // Request timeout (in milliseconds)

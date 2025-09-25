@@ -1,8 +1,11 @@
 import { NativeTabs, Icon, Label, Badge } from 'expo-router/unstable-native-tabs';
+import { usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 
 export default function TabsLayout() {
+    const pathname = usePathname();
+    const hideTabs = pathname?.includes('/chat');
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['top']}>
             <View style={{ flex: 1 }}>
@@ -40,6 +43,9 @@ export default function TabsLayout() {
                         />
                     </NativeTabs.Trigger>
                 </NativeTabs>
+                {hideTabs && (
+                    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 90, backgroundColor: '#000000' }} />
+                )}
             </View>
         </SafeAreaView>
     );

@@ -93,3 +93,88 @@ class AIInsightsService:
 ai_insights_service = AIInsightsService()
 
 
+class ChatService:
+    """Simple Gemini-backed chat helper for trading assistant conversations."""
+    def __init__(self) -> None:
+        self.api_key = os.getenv('GEMINI_API_KEY')
+        self.model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+        self.enabled = bool(self.api_key)
+
+    def ask(self, message: str, context: dict | None = None) -> dict:
+        """Send a chat-style prompt to Gemini and return text or error.
+
+        Returns: { text: str } on success, or { error: str } on failure.
+        """
+        if not self.enabled:
+            return { 'error': 'GEMINI_API_KEY not configured' }
+
+        # Build a system-style instruction and user/content parts
+        system_prompt = (
+            "You are a professional trading assistant focused on stocks, Indian markets, and technical analysis. "
+            "Provide concise, actionable, and cautious guidance. Mention uncertainties. "
+            "If the question is off-topic (personal issues, relationships, unrelated life advice), politely refuse. "
+            "Never provide financial, legal, or tax advice. Include risk disclaimers where relevant."
+        )
+
+        # Merge context into the prompt as structured text if provided
+        context_text = ""
+        if context:
+            try:
+                context_text = "\nContext (JSON): " + json.dumps(context, ensure_ascii=False)
+            except Exception:
+                context_text = f"\nContext: {context}"
+
+        user_prompt = f"User message: {message}{context_text}"
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': self.api_key,
+        }
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        { "text": system_prompt },
+                        { "text": user_prompt },
+                    ]
+                }
+            ]
+        }
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=20)
+            resp.raise_for_status()
+            data_json = resp.json()
+            text = (
+                data_json.get('candidates', [{}])[0]
+                .get('content', {})
+                .get('parts', [{}])[0]
+                .get('text', '')
+            )
+            full_text = text.strip()
+            # Try derive a title: use first bold **...** segment or first line up to 80 chars
+            title: str | None = None
+            if '**' in full_text:
+                try:
+                    segs = full_text.split('**')
+                    if len(segs) >= 3 and segs[1].strip():
+                        title = segs[1].strip()
+                except Exception:
+                    title = None
+            if not title:
+                first_line = full_text.splitlines()[0] if full_text else ''
+                title = first_line[:80] if first_line else None
+            return { 'text': full_text, 'title': title }
+        except requests.HTTPError as http_err:
+            try:
+                err_body = resp.json()
+            except Exception:
+                err_body = { 'message': str(http_err) }
+            return { 'error': f"Gemini HTTP error: {err_body}" }
+        except Exception as e:
+            return { 'error': f"Gemini request failed: {e}" }
+
+
+chat_service = ChatService()
+
